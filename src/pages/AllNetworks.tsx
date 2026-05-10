@@ -17,6 +17,17 @@ const BASE = import.meta.env.BASE_URL;
 
 type ViewMode = "map" | "table";
 
+interface NetworkInsight {
+  key: NetKey;
+  sectorCount: number;
+  topSector: string;
+  topParty: string;
+  linePct: number;
+  pointPct: number;
+  roomPct: number;
+  totalLengthKm: number;
+}
+
 function sampleForMap(key: NetKey, features: SimpleFeature[]) {
   const lines = features.filter((feature) => feature.c === "line");
   const rooms = features.filter((feature) => feature.c === "room");
@@ -44,6 +55,10 @@ function sampleForMap(key: NetKey, features: SimpleFeature[]) {
     ...rooms.slice(0, limit.rooms),
     ...points.slice(0, limit.points),
   ];
+}
+
+function topRecordName(record: Record<string, number> | undefined) {
+  return Object.entries(record || {}).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || "";
 }
 
 export function AllNetworksPage() {
@@ -118,6 +133,28 @@ export function AllNetworksPage() {
     (sum, k) => sum + (s.networks[k]?.totalLengthKm || 0),
     0
   );
+
+  const sectorNames = sectorsQ.data.polygons
+    .map((sector) => sector.name)
+    .filter((name) => name && name.trim().length > 0);
+
+  const networkInsights: Record<NetKey, NetworkInsight> = ALL_KEYS.reduce((acc, key) => {
+    const stat = s.networks[key];
+    const byCategory = stat?.byCategory || {};
+    const total = stat?.total || 0;
+    const sectorCount = Object.keys(stat?.bySector || {}).length;
+    acc[key] = {
+      key,
+      sectorCount,
+      topSector: topRecordName(stat?.bySector),
+      topParty: topRecordName(stat?.byImplementing),
+      linePct: total > 0 ? ((byCategory.line || 0) / total) * 100 : 0,
+      pointPct: total > 0 ? ((byCategory.point || 0) / total) * 100 : 0,
+      roomPct: total > 0 ? ((byCategory.room || 0) / total) * 100 : 0,
+      totalLengthKm: stat?.totalLengthKm || 0,
+    };
+    return acc;
+  }, {} as Record<NetKey, NetworkInsight>);
 
   const networkBreakdown = ALL_KEYS.map((k) => ({
     name: netLabel(k, lang, true),
@@ -226,6 +263,7 @@ export function AllNetworksPage() {
           <div className="space-y-1.5 overflow-y-auto h-full pr-1">
             {ALL_KEYS.map((k, i) => {
               const stat = s.networks[k];
+              const insight = networkInsights[k];
               const isOn = enabled.has(k);
               const isActive = activeNet === k;
               return (
@@ -277,6 +315,28 @@ export function AllNetworksPage() {
                       >
                         {(stat?.totalLengthKm || 0).toFixed(1)} {t("g.km")}
                       </div>
+                    </div>
+                  </div>
+                  <div className="mt-1.5 grid grid-cols-2 gap-1 text-[8.5px]">
+                    <div className="rounded-sm border border-white/5 bg-background/25 p-1">
+                      <div className="text-muted-foreground">{t("biz.coverage")}</div>
+                      <div className="font-bold tabular-nums" style={{ color: NET_COLORS[k] }}>
+                        {insight.sectorCount}/{sectorNames.length}
+                      </div>
+                    </div>
+                    <div className="rounded-sm border border-white/5 bg-background/25 p-1">
+                      <div className="text-muted-foreground">{t("stat.lines")}</div>
+                      <div className="font-bold tabular-nums" style={{ color: NET_COLORS[k] }}>
+                        {insight.linePct.toFixed(0)}%
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-1.5 space-y-0.5 text-[8.5px] text-muted-foreground">
+                    <div className="truncate" title={td(insight.topSector)}>
+                      {t("insight.top_sector")}: <span className="text-foreground/85">{td(insight.topSector) || t("g.dash")}</span>
+                    </div>
+                    <div className="truncate" title={td(insight.topParty)}>
+                      {t("filter.implementing")}: <span className="text-foreground/85">{td(insight.topParty) || t("g.dash")}</span>
                     </div>
                   </div>
                 </motion.button>
@@ -398,12 +458,13 @@ export function AllNetworksPage() {
               const stat = s.networks[k];
               if (!stat) return null;
               const total = stat.total;
-              const linePct = total > 0 ? ((stat.byCategory.line || 0) / total) * 100 : 0;
+              const insight = networkInsights[k];
+              const coveragePct = sectorNames.length > 0 ? (insight.sectorCount / sectorNames.length) * 100 : 0;
               return (
                 <motion.div
                   key={k}
                   whileHover={{ scale: 1.03 }}
-                  className="rounded-md p-1.5 flex flex-col justify-between"
+                  className="rounded-md p-1.5 flex flex-col justify-between overflow-hidden"
                   style={{
                     background: `${NET_COLORS[k]}14`,
                     border: `1px solid ${NET_COLORS[k]}40`,
@@ -420,8 +481,19 @@ export function AllNetworksPage() {
                     >
                       {formatCount(total)}
                     </div>
-                    <div className="text-[8.5px] text-muted-foreground mt-0.5">
-                      {t("stat.lines")} {linePct.toFixed(0)}%
+                    <div className="mt-1 grid grid-cols-2 gap-1 text-[8px] text-muted-foreground">
+                      <span className="truncate">
+                        {t("biz.coverage")} <b className="font-black text-foreground/80 tabular-nums">{coveragePct.toFixed(0)}%</b>
+                      </span>
+                      <span className="truncate">
+                        {t("g.km")} <b className="font-black text-foreground/80 tabular-nums">{Math.round(insight.totalLengthKm)}</b>
+                      </span>
+                      <span className="truncate">
+                        {t("cat.line")} <b className="font-black text-foreground/80 tabular-nums">{insight.linePct.toFixed(0)}%</b>
+                      </span>
+                      <span className="truncate">
+                        {t("cat.point")} <b className="font-black text-foreground/80 tabular-nums">{insight.pointPct.toFixed(0)}%</b>
+                      </span>
                     </div>
                   </div>
                 </motion.div>
