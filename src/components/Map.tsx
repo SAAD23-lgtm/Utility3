@@ -310,6 +310,19 @@ function addFireflyLine(
   });
 }
 
+function getFeatureVertexCount(f: SimpleFeature) {
+  if (f.g.t === "P") return 1;
+  if (f.g.t === "L") return f.g.c.length;
+  if (f.g.t === "ML") return f.g.c.reduce((sum, segment) => sum + segment.length, 0);
+  return f.g.c.reduce((sum, ring) => sum + ring.length, 0);
+}
+
+function getFeatureCoordinateText(f: SimpleFeature) {
+  if (f.g.t !== "P") return "";
+  const [lon, lat] = f.g.c;
+  return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+}
+
 export function MapView(props: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -590,15 +603,26 @@ export function MapView(props: MapProps) {
       style: ReturnType<typeof getTypeStyle>,
       e: L.LeafletMouseEvent
     ) => {
+      const label = (ar: string, en: string) => (lang === "ar" ? ar : en);
+      const rows: Array<[string, string]> = [
+        [label("الشبكة", "Network"), netLabel(f.n, lang)],
+        [label("التصنيف", "Category"), t(`cat.${f.c}`)],
+        [t("hover.sector"), td(f.s) || t("g.dash")],
+        [t("hover.implementing"), td(f.imp) || t("g.dash")],
+      ];
+      if (f.st) rows.push([t("hover.material"), td(f.st)]);
+      if (f.d) rows.push([t("hover.diameter"), td(f.d) || String(f.d)]);
+      if (f.l) rows.push([t("hover.length"), `${f.l.toFixed(3)} ${t("g.km")}`]);
+      rows.push([label("نقاط الرسم", "Vertices"), String(getFeatureVertexCount(f))]);
+      if (f.code) rows.push([label("الكود", "Code"), String(f.code)]);
+      if (f.sourceLayer) rows.push([label("الطبقة", "Source layer"), f.sourceLayer]);
+      const coordinates = getFeatureCoordinateText(f);
+      if (coordinates) rows.push([label("الإحداثيات", "Coordinates"), coordinates]);
+
       setHovered({
         title: td(f.t),
         titleColor: style.color,
-        rows: [
-          [t("hover.sector"), td(f.s) || t("g.dash")],
-          [t("hover.implementing"), td(f.imp) || t("g.dash")],
-          ...(f.l ? [[t("hover.length"), `${f.l.toFixed(3)} ${t("g.km")}`] as [string, string]] : []),
-          ...(f.d ? [[t("hover.diameter"), String(f.d)] as [string, string]] : []),
-        ],
+        rows,
       });
       hoverPosRef.current = {
         x: (e.originalEvent as MouseEvent).clientX,
@@ -761,11 +785,11 @@ export function MapView(props: MapProps) {
       {hovered && (
         <div
           dir={lang === "ar" ? "rtl" : "ltr"}
-          className="pointer-events-none fixed z-[9999] min-w-[210px] max-w-[280px] rounded-lg border border-white/10 bg-slate-950/95 p-3 text-[11px] text-right shadow-[0_18px_45px_rgba(2,6,23,0.55)] backdrop-blur-md"
+          className="pointer-events-none fixed z-[9999] min-w-[250px] max-w-[340px] rounded-lg border border-white/10 bg-slate-950/95 p-3 text-[11px] text-right shadow-[0_18px_45px_rgba(2,6,23,0.55)] backdrop-blur-md"
           style={{
             left:
               hoverPosRef.current.x +
-              (hoverPosRef.current.x > window.innerWidth - 250 ? -232 : 14),
+              (hoverPosRef.current.x > window.innerWidth - 360 ? -356 : 14),
             top: hoverPosRef.current.y + 12,
             boxShadow: `0 18px 45px rgba(2,6,23,0.55), 0 0 0 1px ${hovered.titleColor || "rgba(245,158,11,0.34)"}`,
           }}
@@ -784,9 +808,9 @@ export function MapView(props: MapProps) {
           </div>
           <div className="space-y-1.5">
             {hovered.rows.map(([k, v], i) => (
-              <div key={i} className="grid grid-cols-[auto_1fr] items-start gap-4 text-[10.5px] leading-4">
+              <div key={i} className="grid grid-cols-[82px_minmax(0,1fr)] items-start gap-3 text-[10.5px] leading-4">
                 <span className="text-slate-400">{k}</span>
-                <span className="min-w-0 break-words text-start font-semibold text-slate-50" dir="auto">
+                <span className="min-w-0 break-words [overflow-wrap:anywhere] text-start font-semibold text-slate-50" dir="auto">
                   {v}
                 </span>
               </div>
