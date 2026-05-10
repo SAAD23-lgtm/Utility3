@@ -191,14 +191,8 @@ export function AllNetworksPage() {
 
   return (
     <PageContainer>
-      <div
-        className="grid h-full gap-2.5"
-        style={{
-          gridTemplateColumns: "270px 1fr 290px",
-          gridTemplateRows: "auto 1fr 220px",
-        }}
-      >
-        <div className="col-span-3 grid grid-cols-4 gap-2">
+      <div className="all-networks-grid">
+        <div className="all-networks-stats">
           <StatCard
             label={t("stat.total_network_elements")}
             value={formatCount(totalFeatures)}
@@ -232,7 +226,7 @@ export function AllNetworksPage() {
         <CardWrap
           title={t("card.networks_toggle")}
           delay={0.1}
-          className="row-span-2 overflow-hidden"
+          className="all-networks-toggle"
           right={
             <div className="flex items-center gap-0.5 glass-card rounded p-0.5">
               <button
@@ -345,7 +339,7 @@ export function AllNetworksPage() {
           </div>
         </CardWrap>
 
-        <div className="row-span-2 relative">
+        <div className="all-networks-map-shell">
           <AnimatePresence mode="wait">
             {viewMode === "map" ? (
               <motion.div
@@ -418,7 +412,7 @@ export function AllNetworksPage() {
           </AnimatePresence>
         </div>
 
-        <div className="row-span-2 grid grid-rows-2 gap-2 overflow-hidden">
+        <div className="all-networks-side-charts">
           <CardWrap title={t("card.network_distribution")} delay={0.15}>
             <Donut
               data={networkBreakdown}
@@ -453,7 +447,7 @@ export function AllNetworksPage() {
         </CardWrap>
 
         <CardWrap title={t("card.network_share")} delay={0.35}>
-          <div className="grid grid-cols-3 gap-1 h-full">
+          <div className="all-networks-share-grid">
             {ALL_KEYS.map((k) => {
               const stat = s.networks[k];
               if (!stat) return null;

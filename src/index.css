@@ -240,4 +240,219 @@
     stroke-dasharray: 1000;
     animation: draw-line 1.5s ease-out forwards;
   }
+
+  .all-networks-grid {
+    display: grid;
+    gap: 0.625rem;
+    min-height: 100%;
+  }
+  .all-networks-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .all-networks-toggle,
+  .all-networks-side-charts {
+    min-height: 360px;
+    overflow: hidden;
+  }
+  .all-networks-map-shell {
+    position: relative;
+    min-height: 520px;
+  }
+  .all-networks-side-charts {
+    display: grid;
+    grid-template-rows: repeat(2, minmax(280px, 1fr));
+    gap: 0.5rem;
+  }
+  .all-networks-share-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.375rem;
+    height: 100%;
+  }
+
+  @media (max-width: 767px) {
+    .all-networks-grid > .glass-card {
+      min-height: 300px;
+    }
+    .all-networks-grid > .glass-card:last-child {
+      min-height: 430px;
+    }
+    .all-networks-stats .glass-card {
+      min-width: 0;
+    }
+    .all-networks-map-shell > div {
+      border-radius: 0.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .all-networks-stats,
+    .all-networks-share-grid {
+      grid-template-columns: 1fr;
+    }
+    .all-networks-map-shell {
+      min-height: 460px;
+    }
+    .all-networks-toggle {
+      min-height: 520px;
+    }
+    .all-networks-side-charts {
+      grid-template-rows: repeat(2, minmax(320px, auto));
+    }
+  }
+
+  @media (min-width: 768px) {
+    .all-networks-grid {
+      height: 100%;
+      grid-template-columns: 270px minmax(0, 1fr) 290px;
+      grid-template-rows: auto minmax(0, 1fr) 220px;
+    }
+    .all-networks-stats {
+      grid-column: span 3 / span 3;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .all-networks-toggle,
+    .all-networks-map-shell,
+    .all-networks-side-charts {
+      grid-row: span 2 / span 2;
+      min-height: 0;
+    }
+    .all-networks-map-shell {
+      min-height: 0;
+    }
+    .all-networks-side-charts {
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+    .all-networks-share-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .network-detail-grid {
+    display: grid;
+    gap: 0.5rem;
+    min-height: 100%;
+  }
+  .network-detail-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .network-detail-filters,
+  .network-detail-stats {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .network-detail-panel {
+    min-height: 360px;
+    overflow: hidden;
+  }
+  .network-detail-map-shell {
+    position: relative;
+    min-height: 520px;
+    overflow: hidden;
+    border-radius: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    .network-detail-filters,
+    .network-detail-stats {
+      grid-template-columns: 1fr;
+    }
+    .network-detail-map-shell {
+      min-height: 460px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .network-detail-grid {
+      height: 100%;
+      grid-template-columns: 270px minmax(0, 1fr) 280px;
+      grid-template-rows: auto auto auto minmax(0, 1fr) 190px;
+    }
+    .network-detail-title,
+    .network-detail-filters,
+    .network-detail-stats {
+      grid-column: span 3 / span 3;
+    }
+    .network-detail-filters {
+      grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    }
+    .network-detail-stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .network-detail-panel,
+    .network-detail-map-shell {
+      min-height: 0;
+    }
+  }
+
+  .overview-grid {
+    display: grid;
+    gap: 0.625rem;
+    min-height: 100%;
+  }
+  .overview-stats {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .overview-panel,
+  .overview-side-charts {
+    min-height: 360px;
+    overflow: hidden;
+  }
+  .overview-map-shell {
+    position: relative;
+    min-height: 520px;
+  }
+  .overview-side-charts {
+    display: grid;
+    grid-template-rows: repeat(2, minmax(280px, 1fr));
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    .overview-stats {
+      grid-template-columns: 1fr;
+    }
+    .overview-map-shell {
+      min-height: 460px;
+    }
+    .overview-panel {
+      min-height: 520px;
+    }
+    .overview-side-charts {
+      grid-template-rows: repeat(2, minmax(320px, auto));
+    }
+  }
+
+  @media (min-width: 768px) {
+    .overview-grid {
+      height: 100%;
+      grid-template-columns: 260px minmax(0, 1fr) 280px;
+      grid-template-rows: auto minmax(0, 1fr) 200px;
+    }
+    .overview-stats {
+      grid-column: span 3 / span 3;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+    .overview-panel,
+    .overview-map-shell,
+    .overview-side-charts {
+      grid-row: span 2 / span 2;
+      min-height: 0;
+    }
+    .overview-map-shell {
+      min-height: 0;
+    }
+    .overview-side-charts {
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+  }
 }

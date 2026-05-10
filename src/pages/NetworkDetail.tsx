@@ -1324,15 +1324,9 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
 
   return (
     <PageContainer>
-      <div
-        className="grid h-full gap-2"
-        style={{
-          gridTemplateColumns: "270px 1fr 280px",
-          gridTemplateRows: "auto auto auto 1fr 190px",
-        }}
-      >
+      <div className="network-detail-grid">
         {/* ── Title bar ── */}
-        <div className="col-span-3 flex items-center justify-between gap-3">
+        <div className="network-detail-title">
           <div className="flex items-center gap-2.5">
             <div
               className="w-9 h-9 rounded-md flex items-center justify-center text-lg shrink-0"
@@ -1352,7 +1346,7 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             {/* Active type chip */}
             {typeFilter && typeStyle && (
               <motion.div
@@ -1407,10 +1401,7 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
         </div>
 
         {/* ── Filters row ── */}
-        <div
-          className="col-span-3 grid gap-2"
-          style={{ gridTemplateColumns: `repeat(${filterItems.length}, minmax(0, 1fr))` }}
-        >
+        <div className="network-detail-filters">
           {filterItems.map((filter) => (
             <SmartFilter
               key={filter.key}
@@ -1425,7 +1416,7 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
         </div>
 
         {/* ── Stat cards ── */}
-        <div className="col-span-3 grid grid-cols-4 gap-2">
+        <div className="network-detail-stats">
           {statCards.map((card) => (
             <StatCard
               key={card.label}
@@ -1445,7 +1436,7 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
         <CardWrap
           title={t("card.elements_detail")}
           delay={0.1}
-          className="row-span-1 overflow-hidden"
+          className="network-detail-panel"
           right={
             isFiltered ? (
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
@@ -1465,7 +1456,7 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
         </CardWrap>
 
         {/* ── Center: Map or Table ── */}
-        <div className="row-span-1 relative overflow-hidden rounded-lg">
+        <div className="network-detail-map-shell">
           <AnimatePresence mode="wait">
             {viewMode === "map" ? (
               <motion.div
@@ -1537,7 +1528,7 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
         <CardWrap
           title={t("card.by_sector_top", { n: 12 })}
           delay={0.15}
-          className="row-span-1 overflow-hidden"
+          className="network-detail-panel"
         >
           <div className="h-full flex flex-col min-h-0 gap-2">
             <div className="shrink-0 overflow-y-auto rounded-md border border-white/5 bg-background/20 p-2 pr-3 max-h-[28%]">

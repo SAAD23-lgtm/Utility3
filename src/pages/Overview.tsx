@@ -121,15 +121,9 @@ export function OverviewPage() {
 
   return (
     <PageContainer>
-      <div
-        className="grid h-full gap-2.5"
-        style={{
-          gridTemplateColumns: "260px 1fr 280px",
-          gridTemplateRows: "auto 1fr 200px",
-        }}
-      >
+      <div className="overview-grid">
         {/* Top stats row */}
-        <div className="col-span-3 grid grid-cols-8 gap-2">
+        <div className="overview-stats">
           <StatCard
             label={t("stat.total_sectors")}
             value={formatCount(totalSectors)}
@@ -195,7 +189,7 @@ export function OverviewPage() {
         <CardWrap
           title={`${t("card.sectors")} (${filteredSectorList.length}/${sectorList.length})`}
           delay={0.1}
-          className="row-span-2 overflow-hidden"
+          className="overview-panel"
         >
           <div className="flex flex-col h-full">
             <div className="relative mb-1.5 shrink-0">
@@ -260,7 +254,7 @@ export function OverviewPage() {
         </CardWrap>
 
         {/* Center map */}
-        <div className="row-span-2 relative">
+        <div className="overview-map-shell">
           <MapView
             bbox={s.bbox}
             sectors={sectorsData.polygons}
@@ -301,7 +295,7 @@ export function OverviewPage() {
         </div>
 
         {/* Right side — donuts */}
-        <div className="row-span-2 grid grid-rows-2 gap-2 overflow-hidden">
+        <div className="overview-side-charts">
           <CardWrap title={t("card.sector_progress")} delay={0.15}>
             <Donut
               data={sectorStatusData}
@@ -322,7 +316,7 @@ export function OverviewPage() {
         </div>
 
         {/* Bottom row */}
-        <CardWrap title={t("card.road_classification")} className="col-span-1" delay={0.25}>
+        <CardWrap title={t("card.road_classification")} delay={0.25}>
           <div className="grid grid-cols-3 gap-1.5 h-full">
             {roadFieldData.map((r, i) => {
               const colors = ["#f59e0b", "#3b82f6", "#a855f7"];
@@ -348,7 +342,7 @@ export function OverviewPage() {
           </div>
         </CardWrap>
 
-        <CardWrap title={t("card.roads_by_district")} className="col-span-1" delay={0.3}>
+        <CardWrap title={t("card.roads_by_district")} delay={0.3}>
           <MiniBars
             data={Object.entries(s.roads.byDistrict)
               .sort((a, b) => b[1] - a[1])
@@ -359,7 +353,6 @@ export function OverviewPage() {
 
         <CardWrap
           title={t("card.top_road_sectors")}
-          className="col-span-1"
           delay={0.35}
         >
           <MiniBars

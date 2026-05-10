@@ -22,7 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-50 glass-panel border-b">
-        <div className="px-4 py-2.5 flex items-center gap-4">
+        <div className="px-3 py-2.5 flex flex-wrap items-center gap-3 md:flex-nowrap md:px-4 md:gap-4">
           <motion.div
             initial={{ opacity: 0, x: lang === "ar" ? -10 : 10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -45,7 +45,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </motion.div>
 
-          <nav className={`flex items-center gap-1 ${lang === "ar" ? "mr-auto" : "ml-auto"}`}>
+          <nav className={`order-3 flex w-full items-center gap-1 overflow-x-auto pb-1 md:order-none md:w-auto md:overflow-visible md:pb-0 ${lang === "ar" ? "md:mr-auto" : "md:ml-auto"}`}>
             {TABS.map((tab) => (
               <Link key={tab.path} href={tab.path}>
                 <button
@@ -107,14 +107,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 overflow-hidden">{children}</main>
+      <main className="flex-1 overflow-hidden max-md:overflow-visible">{children}</main>
     </div>
   );
 }
 
 export function PageContainer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="h-[calc(100vh-49px)] overflow-hidden p-2.5">{children}</div>
+    <div className="min-h-[calc(100vh-92px)] overflow-y-auto p-2.5 md:h-[calc(100vh-49px)] md:min-h-0 md:overflow-hidden">{children}</div>
   );
 }
 
