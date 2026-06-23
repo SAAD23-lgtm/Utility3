@@ -114,7 +114,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export function PageContainer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-[calc(100vh-92px)] overflow-y-auto p-2.5 md:h-[calc(100vh-49px)] md:min-h-0 md:overflow-hidden">{children}</div>
+    <div className="min-h-[calc(100vh-92px)] overflow-y-auto p-2.5 md:h-[calc(100vh-49px)] md:min-h-0 md:overflow-y-auto md:overflow-x-hidden">{children}</div>
   );
 }
 

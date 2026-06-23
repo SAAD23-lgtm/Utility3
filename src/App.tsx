@@ -1,14 +1,16 @@
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { Layout } from "@/components/Layout";
-import { OverviewPage } from "@/pages/Overview";
-import { AllNetworksPage } from "@/pages/AllNetworks";
-import { NetworkDetailPage } from "@/pages/NetworkDetail";
 import type { NetKey } from "@/lib/types";
 import { I18nProvider } from "@/lib/i18n";
+
+const OverviewPage = lazy(() => import("@/pages/Overview").then((m) => ({ default: m.OverviewPage })));
+const AllNetworksPage = lazy(() => import("@/pages/AllNetworks").then((m) => ({ default: m.AllNetworksPage })));
+const NetworkDetailPage = lazy(() => import("@/pages/NetworkDetail").then((m) => ({ default: m.NetworkDetailPage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,12 +39,14 @@ function NetworkRoute({ params }: { params: { key: string } }) {
 function Router() {
   return (
     <Layout>
-      <Switch>
-        <Route path="/" component={OverviewPage} />
-        <Route path="/networks" component={AllNetworksPage} />
-        <Route path="/network/:key" component={NetworkRoute} />
-        <Route component={NotFound} />
-      </Switch>
+      <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-muted-foreground">...</div>}>
+        <Switch>
+          <Route path="/" component={OverviewPage} />
+          <Route path="/networks" component={AllNetworksPage} />
+          <Route path="/network/:key" component={NetworkRoute} />
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
     </Layout>
   );
 }

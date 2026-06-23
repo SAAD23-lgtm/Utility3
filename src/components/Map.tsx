@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type {
@@ -310,6 +310,26 @@ function addFireflyLine(
   });
 }
 
+function addFastLine(
+  group: L.LayerGroup,
+  latlngs: [number, number][],
+  style: ReturnType<typeof getTypeStyle>,
+  weight: number,
+  renderer: L.Renderer
+) {
+  const isMain = style.tone === "mainLine" || style.tone === "primary";
+  const line = L.polyline(latlngs, {
+    color: style.color,
+    weight: Math.max(0.65, weight * (isMain ? 0.95 : 0.78)),
+    opacity: Math.min(style.opacity ?? 0.86, isMain ? 0.82 : 0.62),
+    dashArray: style.dashArray,
+    lineCap: "round",
+    lineJoin: "round",
+    renderer,
+  });
+  return line;
+}
+
 function getFeatureVertexCount(f: SimpleFeature) {
   if (f.g.t === "P") return 1;
   if (f.g.t === "L") return f.g.c.length;
@@ -328,6 +348,9 @@ export function MapView(props: MapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const layersRef = useRef<Record<string, L.LayerGroup>>({});
   const basemapLayersRef = useRef<{ base?: L.TileLayer; labels?: L.TileLayer }>({});
+  const onFeatureClickRef = useRef(props.onFeatureClick);
+  const onRoadClickRef = useRef(props.onRoadClick);
+  const onSectorClickRef = useRef(props.onSectorClick);
   const [basemap, setBasemap] = useState<BasemapKey>("dark");
   const [hovered, setHovered] = useState<{
     title: string;
@@ -336,6 +359,16 @@ export function MapView(props: MapProps) {
   } | null>(null);
   const hoverPosRef = useRef({ x: 0, y: 0 });
   const { t, td, lang } = useI18n();
+  const visibleNetworkKey = useMemo(
+    () => (props.visibleNetworks ? [...props.visibleNetworks].sort().join("|") : "all"),
+    [props.visibleNetworks]
+  );
+
+  useEffect(() => {
+    onFeatureClickRef.current = props.onFeatureClick;
+    onRoadClickRef.current = props.onRoadClick;
+    onSectorClickRef.current = props.onSectorClick;
+  }, [props.onFeatureClick, props.onRoadClick, props.onSectorClick]);
 
   // Initialize map
   useEffect(() => {
@@ -493,7 +526,7 @@ export function MapView(props: MapProps) {
           };
         });
         poly.on("mouseout", () => setHovered(null));
-        poly.on("click", () => props.onSectorClick?.(s));
+        poly.on("click", () => onSectorClickRef.current?.(s));
       }
       group.addLayer(poly);
 
@@ -513,7 +546,7 @@ export function MapView(props: MapProps) {
     layersRef.current.sectors = group;
   }, [
     props.sectors, props.adminBoundaries, props.showSectors, props.highlightSector,
-    props.colorSectorsByStatus, props.onSectorClick, lang,
+    props.colorSectorsByStatus, lang,
   ]);
 
   // Roads layer
@@ -571,12 +604,12 @@ export function MapView(props: MapProps) {
         };
       });
       line.on("mouseout", () => setHovered(null));
-      line.on("click", () => props.onRoadClick?.(r));
+      line.on("click", () => onRoadClickRef.current?.(r));
       group.addLayer(line);
     });
     group.addTo(map);
     layersRef.current.roads = group;
-  }, [props.roads, props.showRoads, props.colorRoadsByStatus, props.onRoadClick, lang]);
+  }, [props.roads, props.showRoads, props.colorRoadsByStatus, lang]);
 
   // Features layer — per-type symbology
   useEffect(() => {
@@ -590,8 +623,9 @@ export function MapView(props: MapProps) {
     const visible = props.visibleNetworks;
     const cap = props.maxFeatures ?? 60000;
     const group = L.layerGroup();
-    const renderer = L.canvas();
+    const renderer = L.canvas({ padding: 0.35 });
     const isNetworkDetail = props.symbolMode === "network-detail";
+    const useFastSymbols = !isNetworkDetail;
     let rendered = 0;
 
     const orderedFeatures = [...props.features].sort(
@@ -638,7 +672,7 @@ export function MapView(props: MapProps) {
 
       if (f.g.t === "P") {
         const [lon, lat] = f.g.c;
-        if (isNetworkDetail) {
+        if (isNetworkDetail && (props.features?.length || 0) <= 3500) {
           const marker = L.marker([lat, lon], {
             icon: createDetailPointIcon(style),
             keyboard: false,
@@ -646,26 +680,28 @@ export function MapView(props: MapProps) {
           });
           marker.on("mouseover", (e) => showFeatureHover(f, style, e));
           marker.on("mouseout", () => setHovered(null));
-          marker.on("click", () => props.onFeatureClick?.(f));
+          marker.on("click", () => onFeatureClickRef.current?.(f));
           group.addLayer(marker);
           rendered++;
           continue;
         }
         const radius = getPointRadius(style);
-        group.addLayer(
-          L.circleMarker([lat, lon], {
-            radius: Math.max(2.4, radius * 1.95),
-            color: style.color,
-            fillColor: style.color,
-            fillOpacity: 0.12,
-            weight: 0,
-            opacity: 0.16,
-            interactive: false,
-            renderer,
-          })
-        );
+        if (!useFastSymbols) {
+          group.addLayer(
+            L.circleMarker([lat, lon], {
+              radius: Math.max(2.4, radius * 1.95),
+              color: style.color,
+              fillColor: style.color,
+              fillOpacity: 0.12,
+              weight: 0,
+              opacity: 0.16,
+              interactive: false,
+              renderer,
+            })
+          );
+        }
         const c = L.circleMarker([lat, lon], {
-          radius: Math.max(1.15, radius * 0.68),
+          radius: useFastSymbols ? Math.max(1, radius * 0.58) : Math.max(1.15, radius * 0.68),
           color: style.color,
           fillColor: style.color,
           fillOpacity: 0.96,
@@ -677,25 +713,29 @@ export function MapView(props: MapProps) {
           showFeatureHover(f, style, e);
         });
         c.on("mouseout", () => setHovered(null));
-        c.on("click", () => props.onFeatureClick?.(f));
+        c.on("click", () => onFeatureClickRef.current?.(f));
         group.addLayer(c);
         rendered++;
       } else if (f.g.t === "L") {
         const latlngs = f.g.c.map(([lon, lat]) => [lat, lon]) as [number, number][];
         const weight = getLineWeight(style);
-        const line = addFireflyLine(group, latlngs, style, weight, renderer);
+        const line = useFastSymbols
+          ? addFastLine(group, latlngs, style, weight, renderer)
+          : addFireflyLine(group, latlngs, style, weight, renderer);
         line.on("mouseover", (e) => {
           showFeatureHover(f, style, e);
         });
         line.on("mouseout", () => setHovered(null));
-        line.on("click", () => props.onFeatureClick?.(f));
+        line.on("click", () => onFeatureClickRef.current?.(f));
         group.addLayer(line);
         rendered++;
       } else if (f.g.t === "ML") {
         for (const seg of f.g.c) {
           const latlngs = seg.map(([lon, lat]) => [lat, lon]) as [number, number][];
           const weight = getLineWeight(style);
-          const line = addFireflyLine(group, latlngs, style, weight, renderer);
+          const line = useFastSymbols
+            ? addFastLine(group, latlngs, style, weight, renderer)
+            : addFireflyLine(group, latlngs, style, weight, renderer);
           group.addLayer(line);
         }
         rendered++;
@@ -704,23 +744,25 @@ export function MapView(props: MapProps) {
           ring.map(([lon, lat]) => [lat, lon])
         ) as [number, number][][];
         const center = getPolygonCenter(f.g.c);
-        const poly = L.polygon(latlngs, {
-          color: style.color,
-          fillOpacity: 0,
-          weight: 3.8,
-          opacity: 0.12,
-          interactive: false,
-          lineCap: "round",
-          lineJoin: "round",
-          renderer,
-        });
-        group.addLayer(poly);
+        if (!useFastSymbols) {
+          const poly = L.polygon(latlngs, {
+            color: style.color,
+            fillOpacity: 0,
+            weight: 3.8,
+            opacity: 0.12,
+            interactive: false,
+            lineCap: "round",
+            lineJoin: "round",
+            renderer,
+          });
+          group.addLayer(poly);
+        }
         const topPoly = L.polygon(latlngs, {
           color: style.color,
           fillColor: style.color,
           fillOpacity: Math.min((style.fillOpacity ?? 0.4) * 0.08, 0.06),
-          weight: style.tone === "primary" ? 1.05 : 0.65,
-          opacity: style.tone === "room" ? 0.36 : 0.5,
+          weight: useFastSymbols ? 0.55 : style.tone === "primary" ? 1.05 : 0.65,
+          opacity: useFastSymbols ? 0.38 : style.tone === "room" ? 0.36 : 0.5,
           lineCap: "round",
           lineJoin: "round",
           renderer,
@@ -729,9 +771,9 @@ export function MapView(props: MapProps) {
           showFeatureHover(f, style, e);
         });
         topPoly.on("mouseout", () => setHovered(null));
-        topPoly.on("click", () => props.onFeatureClick?.(f));
+        topPoly.on("click", () => onFeatureClickRef.current?.(f));
         group.addLayer(topPoly);
-        if (style.tone === "primary" && style.shape && style.shape !== "line" && style.shape !== "dashed-line") {
+        if (!useFastSymbols && style.tone === "primary" && style.shape && style.shape !== "line" && style.shape !== "dashed-line") {
           group.addLayer(
             L.circleMarker(center, {
               radius: Math.max(1.4, getPointRadius(style) * 0.72),
@@ -751,7 +793,7 @@ export function MapView(props: MapProps) {
 
     group.addTo(map);
     layersRef.current.features = group;
-  }, [props.features, props.visibleNetworks, props.onFeatureClick, props.maxFeatures, props.symbolMode, lang]);
+  }, [props.features, visibleNetworkKey, props.maxFeatures, props.symbolMode, lang]);
 
   return (
     <div

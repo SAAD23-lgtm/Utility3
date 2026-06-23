@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSummary, useSectors, formatCount, formatKm } from "@/lib/data";
 import { PageContainer } from "@/components/Layout";
 import { StatCard } from "@/components/StatCard";
@@ -28,32 +28,30 @@ interface NetworkInsight {
   totalLengthKm: number;
 }
 
+function takeEvenly<T>(items: T[], limit: number) {
+  if (!Number.isFinite(limit) || items.length <= limit) return items;
+  const step = items.length / limit;
+  return Array.from({ length: limit }, (_, index) => items[Math.floor(index * step)]);
+}
+
 function sampleForMap(key: NetKey, features: SimpleFeature[]) {
   const lines = features.filter((feature) => feature.c === "line");
   const rooms = features.filter((feature) => feature.c === "room");
   const points = features.filter((feature) => feature.c === "point");
 
-  if (key === "electric") {
-    return [
-      ...lines,
-      ...rooms,
-      ...points,
-    ];
-  }
-
   const limits: Record<NetKey, { lines: number; rooms: number; points: number }> = {
-    electric: { lines: 0, rooms: 0, points: 0 },
-    gas: { lines: 1800, rooms: 14, points: Number.POSITIVE_INFINITY },
-    water: { lines: 1800, rooms: 158, points: Number.POSITIVE_INFINITY },
-    sewage: { lines: 1500, rooms: 13, points: Number.POSITIVE_INFINITY },
-    telecom: { lines: 1500, rooms: 51, points: Number.POSITIVE_INFINITY },
-    irrigation: { lines: 900, rooms: 51, points: Number.POSITIVE_INFINITY },
+    electric: { lines: 5200, rooms: 2500, points: 2600 },
+    gas: { lines: 1200, rooms: 14, points: 2200 },
+    water: { lines: 1200, rooms: 158, points: 1200 },
+    sewage: { lines: 1000, rooms: 13, points: 1300 },
+    telecom: { lines: 1000, rooms: 51, points: 1300 },
+    irrigation: { lines: 700, rooms: 51, points: 950 },
   };
   const limit = limits[key];
   return [
-    ...lines.slice(0, limit.lines),
-    ...rooms.slice(0, limit.rooms),
-    ...points.slice(0, limit.points),
+    ...takeEvenly(lines, limit.lines),
+    ...takeEvenly(rooms, limit.rooms),
+    ...takeEvenly(points, limit.points),
   ];
 }
 
@@ -69,40 +67,53 @@ export function AllNetworksPage() {
   const [activeNet, setActiveNet] = useState<NetKey | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [flyTo, setFlyTo] = useState<SimpleFeature | null>(null);
+  const [loadNetworks, setLoadNetworks] = useState(false);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setLoadNetworks(true), 120);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const networkQueries = useQueries({
     queries: ALL_KEYS.map((k) => ({
       queryKey: ["network", k],
       queryFn: async () => {
-        const res = await fetch(`${BASE}data/network-${k}.json`);
+        const res = await fetch(`${BASE}data/network-${k}.json`, { cache: "force-cache" });
         return res.json();
       },
+      enabled: loadNetworks,
       staleTime: Infinity,
     })),
   });
+  const networkData = networkQueries.map((q) => q.data);
 
   const mapFeatures = useMemo(() => {
     const out: SimpleFeature[] = [];
-    networkQueries.forEach((q, i) => {
-      if (!q.data) return;
+    networkData.forEach((data, i) => {
+      if (!data) return;
       const key = ALL_KEYS[i];
-      out.push(...sampleForMap(key, q.data.features));
+      out.push(...sampleForMap(key, data.features));
     });
     return out;
-  }, [networkQueries]);
+  }, networkData);
 
   const allFeatures = useMemo(() => {
     const out: SimpleFeature[] = [];
-    networkQueries.forEach((q, i) => {
-      if (!q.data) return;
+    networkData.forEach((data, i) => {
+      if (!data) return;
       const key = ALL_KEYS[i];
       if (!enabled.has(key)) return;
-      out.push(...q.data.features);
+      out.push(...data.features);
     });
     return out;
-  }, [networkQueries, enabled]);
+  }, [...networkData, enabled]);
 
   const allLoaded = networkQueries.every((q) => !!q.data);
+
+  const handleLocate = useCallback((f: SimpleFeature) => {
+    setFlyTo(f);
+    setViewMode("map");
+  }, []);
 
   if (!summary.data || !sectorsQ.data) {
     return (
@@ -182,11 +193,6 @@ export function AllNetworksPage() {
       else next.add(k);
       return next;
     });
-  };
-
-  const handleLocate = (f: SimpleFeature) => {
-    setFlyTo(f);
-    setViewMode("map");
   };
 
   return (
@@ -357,6 +363,7 @@ export function AllNetworksPage() {
                   features={mapFeatures}
                   visibleNetworks={enabled}
                   flyToFeature={flyTo}
+                  maxFeatures={24000}
                 />
                 {!allLoaded && (
                   <div className="absolute inset-0 flex items-center justify-center bg-background/60 z-[450] backdrop-blur-sm">

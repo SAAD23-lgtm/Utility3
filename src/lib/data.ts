@@ -10,7 +10,7 @@ import type {
 const BASE = import.meta.env.BASE_URL;
 
 async function fetchJSON<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}data/${path}`);
+  const res = await fetch(`${BASE}data/${path}`, { cache: "force-cache" });
   if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
   return res.json();
 }

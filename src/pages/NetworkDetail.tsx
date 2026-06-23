@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNetwork, useSummary, useSectors, formatCount, formatKm } from "@/lib/data";
 import { PageContainer, BackButton } from "@/components/Layout";
 import { StatCard } from "@/components/StatCard";
@@ -1152,6 +1152,7 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
   const [selected, setSelected] = useState<SimpleFeature | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [flyTo, setFlyTo] = useState<SimpleFeature | null>(null);
+  const visibleNetworks = useMemo(() => new Set<NetKey>([networkKey]), [networkKey]);
 
   useEffect(() => {
     setSectorFilter(null);
@@ -1259,6 +1260,16 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
     return netQ.data ? optionCounts(netQ.data.features, "d") : [];
   }, [netQ.data]);
 
+  const handleLocate = useCallback((f: SimpleFeature) => {
+    setSelected(f);
+    setFlyTo(f);
+    if (viewMode === "table") setViewMode("map");
+  }, [viewMode]);
+
+  const handleSectorClick = useCallback((s: { name: string }) => {
+    setSectorFilter((prev) => (prev === s.name ? null : s.name));
+  }, []);
+
   /* ─── Loading guard ─────────────────────────────────────── */
   if (!summary.data || !netQ.data || !sectorsQ.data || !stat) {
     return (
@@ -1304,12 +1315,6 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
   const sectorData = Object.entries(activeStats?.bySector || stat.bySector)
     .map(([name, value]) => ({ name: td(name), value }))
     .sort((a, b) => b.value - a.value).slice(0, 12);
-
-  const handleLocate = (f: SimpleFeature) => {
-    setSelected(f);
-    setFlyTo(f);
-    if (viewMode === "table") setViewMode("map");
-  };
 
   const clearAll = () => {
     setDistrictFilter(null);
@@ -1472,14 +1477,12 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
                   sectors={visibleSectors}
                   adminBoundaries={sectorsQ.data.adminBoundaries}
                   features={filteredFeatures}
-                  visibleNetworks={new Set([networkKey])}
+                  visibleNetworks={visibleNetworks}
                   symbolMode="network-detail"
                   highlightSector={sectorFilter}
                   flyToFeature={flyTo}
                   onFeatureClick={setSelected}
-                  onSectorClick={(s) =>
-                    setSectorFilter((prev) => (prev === s.name ? null : s.name))
-                  }
+                  onSectorClick={handleSectorClick}
                 />
                 {/* Counter badge */}
                 <div className="absolute top-2 right-2 z-[400] glass-card rounded-md px-2.5 py-1 text-[10px] font-medium pointer-events-none">

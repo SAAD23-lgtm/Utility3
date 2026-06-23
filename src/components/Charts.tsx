@@ -83,8 +83,8 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
   const activeLabel = hoverIdx !== null ? data[hoverIdx]?.name : centerLabel;
   if (compact) {
     return (
-      <div className="relative grid h-full w-full grid-cols-[minmax(0,1fr)_112px] items-center gap-2 overflow-hidden">
-        <div className="min-w-0 space-y-1.5 overflow-y-auto max-h-full pl-1">
+      <div className="relative grid h-full w-full min-h-[150px] grid-cols-[minmax(112px,1fr)_clamp(92px,34%,116px)] content-center items-center gap-2 overflow-hidden max-[430px]:grid-cols-1 max-[430px]:content-start">
+        <div className="min-h-0 min-w-0 space-y-1.5 overflow-y-auto max-h-full pl-1 max-[430px]:order-2">
           {data.map((d, i) => {
             const pct = total > 0 ? (d.value / total) * 100 : 0;
             const itemColor = d.color || CHART_PALETTE[i % CHART_PALETTE.length];
@@ -113,7 +113,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
           })}
         </div>
 
-        <div className="relative h-[112px] w-[112px] shrink-0 justify-self-center">
+        <div className="relative aspect-square w-full max-w-[116px] shrink-0 justify-self-center max-[430px]:order-1 max-[430px]:max-w-[120px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -344,11 +344,11 @@ export function RadialChart({
   data: Array<{ subject: string; value: number; fullMark: number }>;
 }) {
   return (
-    <ResponsiveContainer width="100%" height="100%" minHeight={160}>
-      <RadarChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 16 }}>
+    <ResponsiveContainer width="100%" height="100%" minHeight={190}>
+      <RadarChart data={data} margin={{ top: 22, right: 34, bottom: 18, left: 34 }}>
         <PolarGrid stroke="hsl(220, 15%, 22%)" />
         <PolarAngleAxis dataKey="subject" tick={{ fill: "hsl(var(--foreground))", fontSize: 9 }} />
-        <PolarRadiusAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 8 }} stroke="hsl(220, 15%, 18%)" angle={90} />
+        <PolarRadiusAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 8 }} stroke="hsl(220, 15%, 18%)" angle={90} tickCount={4} />
         <Radar
           dataKey="value"
           stroke="hsl(var(--primary))"
