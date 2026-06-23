@@ -91,6 +91,7 @@ export function OverviewPage() {
       );
     });
   }, [sectorList, sectorQuery, td]);
+  const visibleSectorList = filteredSectorList.slice(0, 10);
 
   if (!summary.data || !sectorsQ.data || !roadsQ.data) {
     return <Loading text={t("state.loading")} />;
@@ -187,7 +188,7 @@ export function OverviewPage() {
 
         {/* Left side — searchable sector list */}
         <CardWrap
-          title={`${t("card.sectors")} (${filteredSectorList.length}/${sectorList.length})`}
+          title={`${t("card.sectors")} (${visibleSectorList.length}/${filteredSectorList.length})`}
           delay={0.1}
           className="overview-panel"
         >
@@ -201,8 +202,8 @@ export function OverviewPage() {
                 className={`w-full bg-secondary/40 border border-border/40 rounded-md text-[10.5px] py-1 ${lang === "ar" ? "pr-6 pl-2" : "pl-6 pr-2"} focus:outline-none focus:border-primary/60 transition`}
               />
             </div>
-            <div className="space-y-1 overflow-y-auto flex-1 pr-1">
-              {filteredSectorList.map((sec, i) => (
+            <div className="space-y-1 overflow-hidden flex-1 pr-1">
+              {visibleSectorList.map((sec, i) => (
                 <motion.button
                   key={sec.name + i}
                   initial={{ opacity: 0, x: lang === "ar" ? -6 : 6 }}
@@ -302,6 +303,7 @@ export function OverviewPage() {
               centerLabel={t("stat.total_sectors")}
               centerValue={formatCount(totalSectors)}
               compact
+              maxItems={4}
             />
           </CardWrap>
           <CardWrap title={t("card.road_progress")} delay={0.2}>
@@ -311,6 +313,7 @@ export function OverviewPage() {
               centerValue={formatKm(totalRoadsKm)}
               thin
               compact
+              maxItems={4}
             />
           </CardWrap>
         </div>
@@ -348,6 +351,7 @@ export function OverviewPage() {
               .sort((a, b) => b[1] - a[1])
               .map(([name, value]) => ({ name: td(name), value }))}
             color="#a855f7"
+            maxItems={5}
           />
         </CardWrap>
 
@@ -358,9 +362,9 @@ export function OverviewPage() {
           <MiniBars
             data={Object.entries(s.roads.bySector)
               .sort((a, b) => b[1].km - a[1].km)
-              .slice(0, 7)
               .map(([name, v]) => ({ name: td(name), value: Number(v.km.toFixed(1)) }))}
             color="#f59e0b"
+            maxItems={5}
           />
         </CardWrap>
       </div>

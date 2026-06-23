@@ -144,6 +144,7 @@ function getSectorStyle(status: string, highlighted: boolean, classify: boolean)
     opacity: highlighted ? 0.86 : isBoundaryOnly ? 0.42 : isUnknown ? 0.28 : 0.46,
     haloOpacity: highlighted ? 0.2 : isBoundaryOnly ? 0.08 : isUnknown ? 0.08 : 0.07,
     haloWeight: highlighted ? 2.8 : isBoundaryOnly ? 1.4 : isUnknown ? 1.2 : 1.3,
+    dashArray: isBoundaryOnly ? "5 5" : undefined,
   };
 }
 
@@ -398,6 +399,17 @@ export function MapView(props: MapProps) {
     if (!mapRef.current) return;
     applyBasemap(mapRef.current, basemap, basemapLayersRef.current);
   }, [basemap]);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const updateSize = () => {
+      window.requestAnimationFrame(() => mapRef.current?.invalidateSize());
+    };
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(containerRef.current);
+    updateSize();
+    return () => observer.disconnect();
+  }, []);
 
   // Fit to bbox
   useEffect(() => {

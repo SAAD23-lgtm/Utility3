@@ -141,7 +141,7 @@ function RankedInsight({
   if (!items.length) return <InsightEmpty />;
 
   return (
-    <div className="h-full overflow-y-auto pr-1 space-y-2">
+    <div className="h-full overflow-hidden pr-1 space-y-2">
       {items.map((item, index) => (
         <motion.div
           key={`${item.name}-${index}`}
@@ -199,7 +199,7 @@ function TileInsight({
   if (!items.length) return <InsightEmpty />;
 
   return (
-    <div className="grid grid-cols-2 gap-1.5 h-full content-start overflow-y-auto pr-1">
+    <div className="grid grid-cols-2 gap-1.5 h-full content-start overflow-hidden pr-1">
       {items.map((item, index) => (
         <motion.div
           key={`${item.name}-${index}`}
@@ -307,6 +307,7 @@ function BusinessInsightCard({
         centerValue={card.centerValue || insightValue(card.data.reduce((sum, item) => sum + item.value, 0), card.metric)}
         thin={card.key === "share"}
         compact
+        maxItems={5}
       />
     );
   }
@@ -1241,6 +1242,7 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
         return byNumber || a.raw.localeCompare(b.raw, "ar");
       });
   }, [netQ.data, sectorDistrictMap]);
+  const visibleDistrictOptions = districtOptions.slice(0, 8);
 
   const stat = summary.data?.networks[networkKey];
 
@@ -1534,8 +1536,8 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
           className="network-detail-panel"
         >
           <div className="h-full flex flex-col min-h-0 gap-2">
-            <div className="shrink-0 overflow-y-auto rounded-md border border-white/5 bg-background/20 p-2 pr-3 max-h-[28%]">
-              <MiniBars data={sectorData.slice(0, 6)} color={color} />
+            <div className="shrink-0 overflow-hidden rounded-md border border-white/5 bg-background/20 p-2 pr-3 max-h-[28%]">
+              <MiniBars data={sectorData} color={color} maxItems={4} />
             </div>
             <div className="min-h-0 flex-1 rounded-md border border-white/10 bg-background/35 p-2">
               <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -1565,7 +1567,7 @@ export function NetworkDetailPage({ networkKey }: { networkKey: NetKey }) {
                     {formatCount(netQ.data.features.length)}
                   </span>
                 </button>
-                {districtOptions.map((district) => (
+                {visibleDistrictOptions.map((district) => (
                   <button
                     key={district.raw}
                     type="button"

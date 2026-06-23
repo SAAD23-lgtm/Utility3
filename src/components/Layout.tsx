@@ -20,8 +20,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-50 glass-panel border-b">
+    <div className="flex h-dvh flex-col overflow-hidden max-md:min-h-dvh max-md:h-auto max-md:overflow-visible">
+      <header className="shrink-0 sticky top-0 z-50 glass-panel border-b">
         <div className="px-3 py-2.5 flex flex-wrap items-center gap-3 md:flex-nowrap md:px-4 md:gap-4">
           <motion.div
             initial={{ opacity: 0, x: lang === "ar" ? -10 : 10 }}
@@ -107,14 +107,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 overflow-hidden max-md:overflow-visible">{children}</main>
+      <main className="min-h-0 flex-1 overflow-auto">{children}</main>
     </div>
   );
 }
 
 export function PageContainer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-[calc(100vh-92px)] overflow-y-auto p-2.5 md:h-[calc(100vh-49px)] md:min-h-0 md:overflow-y-auto md:overflow-x-hidden">{children}</div>
+    <div className="min-h-[calc(100dvh-92px)] p-2.5 md:min-h-full md:p-2">{children}</div>
   );
 }
 

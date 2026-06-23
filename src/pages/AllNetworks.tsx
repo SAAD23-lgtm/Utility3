@@ -260,7 +260,7 @@ export function AllNetworksPage() {
             </div>
           }
         >
-          <div className="space-y-1.5 overflow-y-auto h-full pr-1">
+          <div className="space-y-1.5 overflow-hidden h-full pr-1">
             {ALL_KEYS.map((k, i) => {
               const stat = s.networks[k];
               const insight = networkInsights[k];
@@ -275,7 +275,7 @@ export function AllNetworksPage() {
                   onClick={() => toggleNet(k)}
                   onMouseEnter={() => setActiveNet(k)}
                   onMouseLeave={() => setActiveNet(null)}
-                  className={`w-full text-start p-2 rounded-md transition border ${
+                  className={`w-full text-start p-1.5 rounded-md transition border ${
                     isActive ? "border-primary/40" : "border-border/40"
                   } ${isOn ? "" : "opacity-40"}`}
                   style={{
@@ -283,7 +283,7 @@ export function AllNetworksPage() {
                   }}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="flex items-center gap-1.5 text-[11.5px] font-bold">
+                    <span className="flex items-center gap-1.5 text-[10.5px] font-bold">
                       <NetworkIcon network={k} className="w-3.5 h-3.5" />
                       <span style={{ color: NET_COLORS[k] }}>
                         {netLabel(k, lang)}
@@ -298,46 +298,32 @@ export function AllNetworksPage() {
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-1 text-[9.5px]">
-                    <div className="bg-background/40 rounded-sm p-1">
+                    <div className="bg-background/40 rounded-sm p-1 min-w-0">
                       <div className="text-muted-foreground">{t("stat.total_elements")}</div>
                       <div
-                        className="font-bold tabular-nums"
+                        className="font-bold tabular-nums truncate"
                         style={{ color: NET_COLORS[k] }}
                       >
                         {formatCount(stat?.total || 0)}
                       </div>
                     </div>
-                    <div className="bg-background/40 rounded-sm p-1">
+                    <div className="bg-background/40 rounded-sm p-1 min-w-0">
                       <div className="text-muted-foreground">{t("stat.total_lengths")}</div>
                       <div
-                        className="font-bold tabular-nums"
+                        className="font-bold tabular-nums truncate"
                         style={{ color: NET_COLORS[k] }}
                       >
                         {(stat?.totalLengthKm || 0).toFixed(1)} {t("g.km")}
                       </div>
                     </div>
                   </div>
-                  <div className="mt-1.5 grid grid-cols-2 gap-1 text-[8.5px]">
-                    <div className="rounded-sm border border-white/5 bg-background/25 p-1">
-                      <div className="text-muted-foreground">{t("biz.coverage")}</div>
-                      <div className="font-bold tabular-nums" style={{ color: NET_COLORS[k] }}>
-                        {insight.sectorCount}/{sectorNames.length}
-                      </div>
-                    </div>
-                    <div className="rounded-sm border border-white/5 bg-background/25 p-1">
-                      <div className="text-muted-foreground">{t("stat.lines")}</div>
-                      <div className="font-bold tabular-nums" style={{ color: NET_COLORS[k] }}>
-                        {insight.linePct.toFixed(0)}%
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-1.5 space-y-0.5 text-[8.5px] text-muted-foreground">
-                    <div className="truncate" title={td(insight.topSector)}>
-                      {t("insight.top_sector")}: <span className="text-foreground/85">{td(insight.topSector) || t("g.dash")}</span>
-                    </div>
-                    <div className="truncate" title={td(insight.topParty)}>
-                      {t("filter.implementing")}: <span className="text-foreground/85">{td(insight.topParty) || t("g.dash")}</span>
-                    </div>
+                  <div className="mt-1 flex items-center justify-between gap-2 text-[8.5px] text-muted-foreground">
+                    <span className="truncate">
+                      {t("biz.coverage")} <b className="font-black tabular-nums text-foreground/80">{insight.sectorCount}/{sectorNames.length}</b>
+                    </span>
+                    <span className="shrink-0">
+                      {t("stat.lines")} <b className="font-black tabular-nums text-foreground/80">{insight.linePct.toFixed(0)}%</b>
+                    </span>
                   </div>
                 </motion.button>
               );
@@ -426,6 +412,7 @@ export function AllNetworksPage() {
               centerLabel={t("g.total")}
               centerValue={formatCount(totalFeatures)}
               compact
+              maxItems={6}
             />
           </CardWrap>
           <CardWrap title={t("card.network_radar")} delay={0.2}>
@@ -440,16 +427,18 @@ export function AllNetworksPage() {
             centerValue={formatKm(totalLengthKm)}
             thin
             compact
+            maxItems={6}
           />
         </CardWrap>
 
         <CardWrap title={t("card.top_implementing")} delay={0.3}>
           <MiniBars
-            data={topImplementing(s.networks).slice(0, 7).map((d) => ({
+            data={topImplementing(s.networks).map((d) => ({
               name: td(d.name),
               value: d.value,
             }))}
             color="#10b981"
+            maxItems={5}
           />
         </CardWrap>
 

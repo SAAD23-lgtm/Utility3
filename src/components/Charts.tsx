@@ -74,18 +74,20 @@ interface DonutProps {
   centerValue?: string | number;
   thin?: boolean;
   compact?: boolean;
+  maxItems?: number;
 }
 
-export function Donut({ data, centerLabel, centerValue, thin = false, compact = false }: DonutProps) {
+export function Donut({ data, centerLabel, centerValue, thin = false, compact = false, maxItems }: DonutProps) {
+  const displayData = maxItems ? data.slice(0, maxItems) : data;
   const total = data.reduce((s, d) => s + d.value, 0);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  const activeValue = hoverIdx !== null ? formatCount(data[hoverIdx]?.value || 0) : centerValue;
-  const activeLabel = hoverIdx !== null ? data[hoverIdx]?.name : centerLabel;
+  const activeValue = hoverIdx !== null ? formatCount(displayData[hoverIdx]?.value || 0) : centerValue;
+  const activeLabel = hoverIdx !== null ? displayData[hoverIdx]?.name : centerLabel;
   if (compact) {
     return (
       <div className="relative grid h-full w-full min-h-[150px] grid-cols-[minmax(112px,1fr)_clamp(92px,34%,116px)] content-center items-center gap-2 overflow-hidden max-[430px]:grid-cols-1 max-[430px]:content-start">
-        <div className="min-h-0 min-w-0 space-y-1.5 overflow-y-auto max-h-full pl-1 max-[430px]:order-2">
-          {data.map((d, i) => {
+        <div className="min-h-0 min-w-0 space-y-1.5 overflow-hidden max-h-full pl-1 max-[430px]:order-2">
+          {displayData.map((d, i) => {
             const pct = total > 0 ? (d.value / total) * 100 : 0;
             const itemColor = d.color || CHART_PALETTE[i % CHART_PALETTE.length];
             return (
@@ -117,7 +119,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={displayData}
                 dataKey="value"
                 nameKey="name"
                 innerRadius="60%"
@@ -130,7 +132,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
                 isAnimationActive
                 animationDuration={700}
               >
-                {data.map((d, i) => (
+                {displayData.map((d, i) => (
                   <Cell
                     key={i}
                     fill={d.color || CHART_PALETTE[i % CHART_PALETTE.length]}
@@ -165,7 +167,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
       <ResponsiveContainer width="48%" height="100%" minHeight={140}>
         <PieChart>
           <Pie
-            data={data}
+            data={displayData}
             dataKey="value"
             nameKey="name"
             innerRadius={thin ? "62%" : "55%"}
@@ -178,7 +180,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
             isAnimationActive
             animationDuration={700}
           >
-            {data.map((d, i) => (
+            {displayData.map((d, i) => (
               <Cell
                 key={i}
                 fill={d.color || CHART_PALETTE[i % CHART_PALETTE.length]}
@@ -191,7 +193,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
       </ResponsiveContainer>
 
       <div className="flex-1 min-w-0 pr-2 space-y-1 overflow-y-auto max-h-full">
-        {data.map((d, i) => {
+        {displayData.map((d, i) => {
           const pct = total > 0 ? (d.value / total) * 100 : 0;
           return (
             <div
@@ -227,11 +229,11 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
         >
           <div className="text-xl font-black text-gradient-amber tabular-nums leading-none">
             {hoverIdx !== null
-              ? formatCount(data[hoverIdx]?.value || 0)
+              ? formatCount(displayData[hoverIdx]?.value || 0)
               : centerValue}
           </div>
           <div className="text-[9px] text-muted-foreground mt-1 leading-tight whitespace-normal break-words">
-            {hoverIdx !== null ? data[hoverIdx]?.name : centerLabel}
+            {hoverIdx !== null ? displayData[hoverIdx]?.name : centerLabel}
           </div>
         </div>
       )}
@@ -298,14 +300,17 @@ export function Bars({ data, vertical = false, unit, maxItems = 12 }: BarsProps)
 export function MiniBars({
   data,
   color = "hsl(var(--primary))",
+  maxItems,
 }: {
   data: Array<{ name: string; value: number; color?: string }>;
   color?: string;
+  maxItems?: number;
 }) {
-  const max = Math.max(1, ...data.map((d) => d.value));
+  const displayData = maxItems ? data.slice(0, maxItems) : data;
+  const max = Math.max(1, ...displayData.map((d) => d.value));
   return (
-    <div className="space-y-1.5">
-      {data.map((d, i) => (
+    <div className="space-y-1.5 overflow-hidden">
+      {displayData.map((d, i) => (
         <motion.div
           key={i}
           initial={{ opacity: 0, x: 8 }}

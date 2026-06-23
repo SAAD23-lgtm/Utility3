@@ -245,6 +245,7 @@
     display: grid;
     gap: 0.625rem;
     min-height: 100%;
+    min-width: 0;
   }
   .all-networks-stats {
     display: grid;
@@ -259,6 +260,8 @@
   .all-networks-map-shell {
     position: relative;
     min-height: 520px;
+    overflow: hidden;
+    border-radius: 0.5rem;
   }
   .all-networks-side-charts {
     display: grid;
@@ -304,29 +307,73 @@
   }
 
   @media (min-width: 768px) {
-    .all-networks-grid {
+    html,
+    body,
+    #root {
+      overflow: hidden;
+    }
+    .glass-card {
+      min-height: 0;
+    }
+    .glass-card > .border-b {
+      padding-block: 0.375rem;
+    }
+    .glass-card > .flex-1 {
+      padding: 0.375rem;
+    }
+    .all-networks-grid,
+    .overview-grid,
+    .network-detail-grid {
       min-height: 100%;
-      grid-template-columns: 270px minmax(0, 1fr) 290px;
-      grid-template-rows: auto minmax(520px, 1fr) minmax(240px, auto);
+      overflow: visible;
+    }
+    .all-networks-stats .glass-card,
+    .overview-stats .glass-card,
+    .network-detail-stats .glass-card {
+      padding: 0.375rem 0.5rem;
+      overflow: hidden;
+    }
+    .all-networks-stats .glass-card > div,
+    .overview-stats .glass-card > div,
+    .network-detail-stats .glass-card > div {
+      min-height: 0;
+      gap: 0.25rem;
+    }
+    .all-networks-stats .glass-card p,
+    .overview-stats .glass-card p,
+    .network-detail-stats .glass-card p {
+      min-height: 20px;
+      font-size: 9px;
+      line-height: 1.15;
+    }
+    .network-detail-stats .glass-card p {
+      min-height: 18px;
+    }
+    .network-detail-stats .glass-card span {
+      line-height: 1;
+    }
+    .all-networks-grid {
+      grid-template-columns: clamp(210px, 18vw, 250px) minmax(0, 1fr) clamp(220px, 19vw, 270px);
+      grid-template-rows: auto minmax(420px, 1fr) minmax(150px, auto);
     }
     .all-networks-stats {
       grid-column: span 3 / span 3;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     }
     .all-networks-toggle,
     .all-networks-map-shell,
     .all-networks-side-charts {
-      grid-row: span 2 / span 2;
-      min-height: 0;
+      min-height: 420px;
     }
     .all-networks-map-shell {
-      min-height: 0;
+      min-height: 420px;
     }
     .all-networks-side-charts {
-      grid-template-rows: repeat(2, minmax(250px, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
     }
     .all-networks-share-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-content: stretch;
     }
   }
 
@@ -334,6 +381,7 @@
     display: grid;
     gap: 0.5rem;
     min-height: 100%;
+    min-width: 0;
   }
   .network-detail-title {
     display: flex;
@@ -371,9 +419,8 @@
 
   @media (min-width: 768px) {
     .network-detail-grid {
-      min-height: 100%;
-      grid-template-columns: 270px minmax(0, 1fr) 280px;
-      grid-template-rows: auto auto auto minmax(520px, 1fr) minmax(220px, auto);
+      grid-template-columns: clamp(220px, 18vw, 260px) minmax(0, 1fr) clamp(220px, 18vw, 260px);
+      grid-template-rows: auto auto auto minmax(430px, 1fr) minmax(150px, auto);
     }
     .network-detail-title,
     .network-detail-filters,
@@ -384,11 +431,18 @@
       grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
     }
     .network-detail-stats {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     }
     .network-detail-panel,
     .network-detail-map-shell {
+      min-height: 430px;
+    }
+    .network-detail-title {
+      gap: 0.375rem;
       min-height: 0;
+    }
+    .network-detail-filters {
+      gap: 0.375rem;
     }
   }
 
@@ -396,6 +450,7 @@
     display: grid;
     gap: 0.625rem;
     min-height: 100%;
+    min-width: 0;
   }
   .overview-stats {
     display: grid;
@@ -410,6 +465,8 @@
   .overview-map-shell {
     position: relative;
     min-height: 520px;
+    overflow: hidden;
+    border-radius: 0.5rem;
   }
   .overview-side-charts {
     display: grid;
@@ -434,25 +491,46 @@
 
   @media (min-width: 768px) {
     .overview-grid {
-      min-height: 100%;
-      grid-template-columns: 260px minmax(0, 1fr) 280px;
-      grid-template-rows: auto minmax(520px, 1fr) minmax(230px, auto);
+      grid-template-columns: clamp(210px, 17vw, 250px) minmax(0, 1fr) clamp(220px, 18vw, 270px);
+      grid-template-rows: auto minmax(420px, 1fr) minmax(150px, auto);
     }
     .overview-stats {
       grid-column: span 3 / span 3;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     }
     .overview-panel,
     .overview-map-shell,
     .overview-side-charts {
-      grid-row: span 2 / span 2;
-      min-height: 0;
+      min-height: 420px;
     }
     .overview-map-shell {
-      min-height: 0;
+      min-height: 420px;
     }
     .overview-side-charts {
-      grid-template-rows: repeat(2, minmax(250px, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 768px) and (max-height: 820px) {
+    .all-networks-grid,
+    .overview-grid {
+      gap: 0.375rem;
+      grid-template-rows: auto minmax(380px, 1fr) minmax(135px, auto);
+    }
+    .network-detail-grid {
+      gap: 0.375rem;
+      grid-template-rows: auto auto auto minmax(380px, 1fr) minmax(135px, auto);
+    }
+    .network-detail-title h2 {
+      font-size: 0.875rem;
+    }
+    .network-detail-title p,
+    .network-detail-title button,
+    .network-detail-title .glass-card button {
+      font-size: 9px;
+    }
+    .all-networks-share-grid {
+      gap: 0.25rem;
     }
   }
 }
