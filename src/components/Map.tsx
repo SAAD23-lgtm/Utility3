@@ -393,6 +393,7 @@ export function MapView(props: MapProps) {
     map.createPane("sectorLabelPane");
     map.getPane("sectorLabelPane")!.style.zIndex = "430";
     map.getPane("sectorLabelPane")!.style.pointerEvents = "none";
+    map.on("click", () => setHovered(null));
     L.control.zoom({ position: "topleft" }).addTo(map);
     mapRef.current = map;
     return () => {
@@ -687,6 +688,16 @@ export function MapView(props: MapProps) {
       };
     };
 
+    const openFeatureDetails = (
+      f: SimpleFeature,
+      style: ReturnType<typeof getTypeStyle>,
+      e: L.LeafletMouseEvent
+    ) => {
+      L.DomEvent.stopPropagation(e);
+      showFeatureHover(f, style, e);
+      onFeatureClickRef.current?.(f);
+    };
+
     for (const f of orderedFeatures) {
       if (rendered >= cap) break;
       if (visible && !visible.has(f.n)) continue;
@@ -701,9 +712,7 @@ export function MapView(props: MapProps) {
             keyboard: false,
             zIndexOffset: style.tone === "primary" || style.tone === "control" ? 80 : 40,
           });
-          marker.on("mouseover", (e) => showFeatureHover(f, style, e));
-          marker.on("mouseout", () => setHovered(null));
-          marker.on("click", () => onFeatureClickRef.current?.(f));
+          marker.on("click", (e) => openFeatureDetails(f, style, e));
           group.addLayer(marker);
           rendered++;
           continue;
@@ -732,11 +741,7 @@ export function MapView(props: MapProps) {
           opacity: 1,
           renderer,
         });
-        c.on("mouseover", (e) => {
-          showFeatureHover(f, style, e);
-        });
-        c.on("mouseout", () => setHovered(null));
-        c.on("click", () => onFeatureClickRef.current?.(f));
+        c.on("click", (e) => openFeatureDetails(f, style, e));
         group.addLayer(c);
         rendered++;
       } else if (f.g.t === "L") {
@@ -745,11 +750,7 @@ export function MapView(props: MapProps) {
         const line = useFastSymbols
           ? addFastLine(group, latlngs, style, weight, renderer)
           : addFireflyLine(group, latlngs, style, weight, renderer);
-        line.on("mouseover", (e) => {
-          showFeatureHover(f, style, e);
-        });
-        line.on("mouseout", () => setHovered(null));
-        line.on("click", () => onFeatureClickRef.current?.(f));
+        line.on("click", (e) => openFeatureDetails(f, style, e));
         group.addLayer(line);
         rendered++;
       } else if (f.g.t === "ML") {
@@ -759,6 +760,7 @@ export function MapView(props: MapProps) {
           const line = useFastSymbols
             ? addFastLine(group, latlngs, style, weight, renderer)
             : addFireflyLine(group, latlngs, style, weight, renderer);
+          line.on("click", (e) => openFeatureDetails(f, style, e));
           group.addLayer(line);
         }
         rendered++;
@@ -790,11 +792,7 @@ export function MapView(props: MapProps) {
           lineJoin: "round",
           renderer,
         });
-        topPoly.on("mouseover", (e) => {
-          showFeatureHover(f, style, e);
-        });
-        topPoly.on("mouseout", () => setHovered(null));
-        topPoly.on("click", () => onFeatureClickRef.current?.(f));
+        topPoly.on("click", (e) => openFeatureDetails(f, style, e));
         group.addLayer(topPoly);
         if (!useFastSymbols && style.tone === "primary" && style.shape && style.shape !== "line" && style.shape !== "dashed-line") {
           group.addLayer(
