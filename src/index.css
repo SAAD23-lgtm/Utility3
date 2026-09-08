@@ -428,9 +428,25 @@
     }
     .all-networks-map-shell {
       min-height: 420px;
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .all-networks-toggle {
+      grid-column: 1;
+      grid-row: 3;
     }
     .all-networks-side-charts {
       grid-template-rows: repeat(2, minmax(0, 1fr));
+      grid-column: 3;
+      grid-row: 3;
+    }
+    .all-networks-length-chart {
+      grid-column: 1 / -1;
+      grid-row: 4;
+    }
+    .all-networks-top-implementing {
+      grid-column: 1 / -1;
+      grid-row: 5;
     }
     .all-networks-share-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
