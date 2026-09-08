@@ -2,14 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSummary, useSectors, formatCount, formatKm } from "@/lib/data";
 import { PageContainer } from "@/components/Layout";
 import { StatCard } from "@/components/StatCard";
-import { CardWrap, Donut, MiniBars, RadialChart } from "@/components/Charts";
+import { CardWrap, Donut, MiniBars } from "@/components/Charts";
 import { MapView } from "@/components/Map";
 import { DataTable } from "@/components/DataTable";
 import { NetworkIcon } from "@/components/NetworkIcon";
 import { NET_COLORS, type NetKey, type SimpleFeature } from "@/lib/types";
 import { useQueries } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Layers, Activity, Pipette, Hash, Map as MapIcon, Table as TableIcon } from "lucide-react";
+import { Layers, Activity, Map as MapIcon, Table as TableIcon } from "lucide-react";
 import { useI18n, netLabel } from "@/lib/i18n";
 
 const ALL_KEYS: NetKey[] = ["electric", "gas", "water", "sewage", "telecom", "irrigation"];
@@ -26,33 +26,6 @@ interface NetworkInsight {
   pointPct: number;
   roomPct: number;
   totalLengthKm: number;
-}
-
-function takeEvenly<T>(items: T[], limit: number) {
-  if (!Number.isFinite(limit) || items.length <= limit) return items;
-  const step = items.length / limit;
-  return Array.from({ length: limit }, (_, index) => items[Math.floor(index * step)]);
-}
-
-function sampleForMap(key: NetKey, features: SimpleFeature[]) {
-  const lines = features.filter((feature) => feature.c === "line");
-  const rooms = features.filter((feature) => feature.c === "room");
-  const points = features.filter((feature) => feature.c === "point");
-
-  const limits: Record<NetKey, { lines: number; rooms: number; points: number }> = {
-    electric: { lines: 5200, rooms: 2500, points: 2600 },
-    gas: { lines: 1200, rooms: 14, points: 2200 },
-    water: { lines: 1200, rooms: 158, points: 1200 },
-    sewage: { lines: 1000, rooms: 13, points: 1300 },
-    telecom: { lines: 1000, rooms: 51, points: 1300 },
-    irrigation: { lines: 700, rooms: 51, points: 950 },
-  };
-  const limit = limits[key];
-  return [
-    ...takeEvenly(lines, limit.lines),
-    ...takeEvenly(rooms, limit.rooms),
-    ...takeEvenly(points, limit.points),
-  ];
 }
 
 function topRecordName(record: Record<string, number> | undefined) {
@@ -87,16 +60,6 @@ export function AllNetworksPage() {
   });
   const networkData = networkQueries.map((q) => q.data);
 
-  const mapFeatures = useMemo(() => {
-    const out: SimpleFeature[] = [];
-    networkData.forEach((data, i) => {
-      if (!data) return;
-      const key = ALL_KEYS[i];
-      out.push(...sampleForMap(key, data.features));
-    });
-    return out;
-  }, networkData);
-
   const allFeatures = useMemo(() => {
     const out: SimpleFeature[] = [];
     networkData.forEach((data, i) => {
@@ -130,14 +93,6 @@ export function AllNetworksPage() {
 
   const totalFeatures = ALL_KEYS.reduce(
     (sum, k) => sum + (s.networks[k]?.total || 0),
-    0
-  );
-  const totalLines = ALL_KEYS.reduce(
-    (sum, k) => sum + (s.networks[k]?.byCategory?.line || 0),
-    0
-  );
-  const totalPoints = ALL_KEYS.reduce(
-    (sum, k) => sum + (s.networks[k]?.byCategory?.point || 0),
     0
   );
   const totalLengthKm = ALL_KEYS.reduce(
@@ -180,12 +135,6 @@ export function AllNetworksPage() {
     color: NET_COLORS[k],
   })).filter((d) => d.value > 0);
 
-  const radarData = ALL_KEYS.map((k) => ({
-    subject: netLabel(k, lang, true).slice(0, 10),
-    value: s.networks[k]?.total || 0,
-    fullMark: Math.max(...ALL_KEYS.map((kk) => s.networks[kk]?.total || 0)),
-  }));
-
   const toggleNet = (k: NetKey) => {
     setEnabled((prev) => {
       const next = new Set(prev);
@@ -212,20 +161,6 @@ export function AllNetworksPage() {
             color="#10b981"
             icon={<Activity className="w-4 h-4" />}
             delay={0.05}
-          />
-          <StatCard
-            label={t("stat.lines_count")}
-            value={formatCount(totalLines)}
-            color="#3b82f6"
-            icon={<Pipette className="w-4 h-4" />}
-            delay={0.1}
-          />
-          <StatCard
-            label={t("stat.points_count")}
-            value={formatCount(totalPoints)}
-            color="#a855f7"
-            icon={<Hash className="w-4 h-4" />}
-            delay={0.15}
           />
         </div>
 
@@ -407,16 +342,10 @@ export function AllNetworksPage() {
 
         <div className="all-networks-side-charts">
           <CardWrap title={t("card.network_distribution")} delay={0.15}>
-            <Donut
+            <MiniBars
               data={networkBreakdown}
-              centerLabel={t("g.total")}
-              centerValue={formatCount(totalFeatures)}
-              compact
               maxItems={6}
             />
-          </CardWrap>
-          <CardWrap title={t("card.network_radar")} delay={0.2}>
-            <RadialChart data={radarData} />
           </CardWrap>
         </div>
 
