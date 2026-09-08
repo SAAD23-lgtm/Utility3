@@ -37,13 +37,14 @@ type BasemapKey = "dark" | "light" | "streets" | "satellite";
 
 const BASEMAPS: Record<
   BasemapKey,
-  { labelAr: string; labelEn: string; url: string; labelsUrl?: string; subdomains?: string | string[] }
+  { labelAr: string; labelEn: string; url: string; labelsUrl?: string; subdomains?: string | string[]; className?: string }
 > = {
   dark: {
     labelAr: "داكن",
     labelEn: "Dark",
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
     labelsUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    className: "map-black-basemap",
   },
   light: {
     labelAr: "فاتح",
@@ -87,6 +88,7 @@ function applyBasemap(
   layers.base = L.tileLayer(config.url, {
     maxZoom: 19,
     subdomains: config.subdomains || "abc",
+    className: config.className,
   }).addTo(map);
 
   if (config.labelsUrl) {

@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Esri's "dark gray" canvas is intentionally mid-gray. Keep its useful road
+   detail while presenting the dashboard's primary map in true black. */
+.leaflet-tile.map-black-basemap {
+  filter: brightness(0.28) contrast(1.4) saturate(0.72);
+}
+
 
 :root {
   --button-outline: rgba(255,255,255, .10);
