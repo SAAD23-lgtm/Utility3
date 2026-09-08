@@ -8,7 +8,7 @@ import { DataTable } from "@/components/DataTable";
 import { NET_COLORS, type NetKey, type SimpleFeature } from "@/lib/types";
 import { useQueries } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Layers, Activity, Map as MapIcon, Table as TableIcon } from "lucide-react";
+import { Layers, Activity, Map as MapIcon, Table as TableIcon, Filter, RotateCcw } from "lucide-react";
 import { useI18n, netLabel } from "@/lib/i18n";
 
 const ALL_KEYS: NetKey[] = ["electric", "gas", "water", "sewage", "telecom", "irrigation"];
@@ -24,6 +24,11 @@ export function AllNetworksPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [flyTo, setFlyTo] = useState<SimpleFeature | null>(null);
   const [loadNetworks, setLoadNetworks] = useState(false);
+  const [networkFilter, setNetworkFilter] = useState<NetKey | "all">("all");
+  const [sectorFilter, setSectorFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [implementerFilter, setImplementerFilter] = useState("all");
+  const [featureSearch, setFeatureSearch] = useState("");
 
   useEffect(() => {
     const id = window.setTimeout(() => setLoadNetworks(true), 120);
@@ -53,6 +58,34 @@ export function AllNetworksPage() {
     });
     return out;
   }, [...networkData, enabled]);
+
+  const filterOptions = useMemo(() => {
+    const sectors = new Set<string>();
+    const types = new Set<string>();
+    const implementers = new Set<string>();
+    allFeatures.forEach((feature) => {
+      if (feature.s) sectors.add(String(feature.s));
+      if (feature.t) types.add(String(feature.t));
+      if (feature.imp) implementers.add(String(feature.imp));
+    });
+    return {
+      sectors: [...sectors].sort(),
+      types: [...types].sort(),
+      implementers: [...implementers].sort(),
+    };
+  }, [allFeatures]);
+
+  const filteredFeatures = useMemo(() => {
+    const q = featureSearch.trim().toLowerCase();
+    return allFeatures.filter((feature) => {
+      if (networkFilter !== "all" && feature.n !== networkFilter) return false;
+      if (sectorFilter !== "all" && feature.s !== sectorFilter) return false;
+      if (typeFilter !== "all" && feature.t !== typeFilter) return false;
+      if (implementerFilter !== "all" && feature.imp !== implementerFilter) return false;
+      if (q && ![feature.t, feature.s, feature.imp, feature.code].some((v) => String(v || "").toLowerCase().includes(q))) return false;
+      return true;
+    });
+  }, [allFeatures, networkFilter, sectorFilter, typeFilter, implementerFilter, featureSearch]);
 
   const allLoaded = networkQueries.every((q) => !!q.data);
 
@@ -120,6 +153,33 @@ export function AllNetworksPage() {
 
   return (
     <PageContainer>
+      <div className="all-networks-filters glass-card rounded-md">
+        <div className="flex items-center gap-2 text-foreground font-bold text-xs shrink-0">
+          <Filter className="h-3.5 w-3.5 text-primary" />
+          <span>{lang === "ar" ? "فلاتر الخريطة" : "Map filters"}</span>
+        </div>
+        <select value={networkFilter} onChange={(e) => setNetworkFilter(e.target.value as NetKey | "all")}>
+          <option value="all">{lang === "ar" ? "كل الشبكات" : "All networks"}</option>
+          {ALL_KEYS.map((key) => <option key={key} value={key}>{netLabel(key, lang)}</option>)}
+        </select>
+        <select value={sectorFilter} onChange={(e) => setSectorFilter(e.target.value)}>
+          <option value="all">{lang === "ar" ? "كل القطاعات" : "All sectors"}</option>
+          {filterOptions.sectors.map((value) => <option key={value} value={value}>{td(value)}</option>)}
+        </select>
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+          <option value="all">{lang === "ar" ? "كل الأنواع" : "All types"}</option>
+          {filterOptions.types.map((value) => <option key={value} value={value}>{td(value)}</option>)}
+        </select>
+        <select value={implementerFilter} onChange={(e) => setImplementerFilter(e.target.value)}>
+          <option value="all">{lang === "ar" ? "كل جهات التنفيذ" : "All implementers"}</option>
+          {filterOptions.implementers.map((value) => <option key={value} value={value}>{td(value)}</option>)}
+        </select>
+        <input value={featureSearch} onChange={(e) => setFeatureSearch(e.target.value)} placeholder={lang === "ar" ? "بحث في العناصر..." : "Search features..."} />
+        <button className="all-networks-filter-reset" onClick={() => { setNetworkFilter("all"); setSectorFilter("all"); setTypeFilter("all"); setImplementerFilter("all"); setFeatureSearch(""); }} title={lang === "ar" ? "مسح الفلاتر" : "Clear filters"}>
+          <RotateCcw className="h-3.5 w-3.5" />
+        </button>
+        <span className="all-networks-filter-count">{formatCount(filteredFeatures.length)} {lang === "ar" ? "عنصر ظاهر" : "visible"}</span>
+      </div>
       <div className="all-networks-grid">
         <div className="all-networks-stats">
           <StatCard
@@ -197,7 +257,7 @@ export function AllNetworksPage() {
                   bbox={s.bbox}
                   sectors={visibleSectors}
                   adminBoundaries={sectorsQ.data?.adminBoundaries}
-                  features={allFeatures}
+                  features={filteredFeatures}
                   visibleNetworks={enabled}
                   flyToFeature={flyTo}
                   maxFeatures={100000}
@@ -246,7 +306,7 @@ export function AllNetworksPage() {
                 className="absolute inset-0 glass-card rounded-md p-2"
               >
                 <DataTable
-                  features={allFeatures}
+                  features={filteredFeatures}
                   color="#f59e0b"
                   showNetworkColumn
                   onLocate={handleLocate}
