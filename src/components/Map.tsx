@@ -54,8 +54,7 @@ const BASEMAPS: Record<
   streets: {
     labelAr: "طرق",
     labelEn: "Roads",
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    subdomains: "abc",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
   },
   satellite: {
     labelAr: "صور",
@@ -358,7 +357,8 @@ export function MapView(props: MapProps) {
   const onFeatureClickRef = useRef(props.onFeatureClick);
   const onRoadClickRef = useRef(props.onRoadClick);
   const onSectorClickRef = useRef(props.onSectorClick);
-  const [basemap, setBasemap] = useState<BasemapKey>("dark");
+  const [basemap, setBasemap] = useState<BasemapKey>("streets");
+  const [viewportVersion, setViewportVersion] = useState(0);
   const [hovered, setHovered] = useState<{
     title: string;
     titleColor?: string;
@@ -394,6 +394,7 @@ export function MapView(props: MapProps) {
     map.getPane("sectorLabelPane")!.style.zIndex = "430";
     map.getPane("sectorLabelPane")!.style.pointerEvents = "none";
     map.on("click", () => setHovered(null));
+    map.on("moveend", () => setViewportVersion((version) => version + 1));
     L.control.zoom({ position: "topleft" }).addTo(map);
     mapRef.current = map;
     return () => {
@@ -650,7 +651,18 @@ export function MapView(props: MapProps) {
     const renderer = L.canvas({ padding: 0.35 });
     const isNetworkDetail = props.symbolMode === "network-detail";
     const useFastSymbols = !isNetworkDetail;
+    const zoom = map.getZoom();
+    const viewBounds = map.getBounds().pad(0.16);
+    const symbolScale = zoom <= 12 ? 0.38 : zoom <= 14 ? 0.55 : zoom <= 16 ? 0.72 : 0.92;
     let rendered = 0;
+
+    const isVisibleInViewport = (f: SimpleFeature) => {
+      const contains = ([lon, lat]: [number, number]) => viewBounds.contains([lat, lon]);
+      if (f.g.t === "P") return contains(f.g.c);
+      if (f.g.t === "L") return f.g.c.some(contains);
+      if (f.g.t === "ML") return f.g.c.some((segment) => segment.some(contains));
+      return f.g.c.some((ring) => ring.some(contains));
+    };
 
     const orderedFeatures = [...props.features].sort(
       (a, b) => featureVisualRank(a) - featureVisualRank(b)
@@ -701,6 +713,12 @@ export function MapView(props: MapProps) {
     for (const f of orderedFeatures) {
       if (rendered >= cap) break;
       if (visible && !visible.has(f.n)) continue;
+      if (!isVisibleInViewport(f)) continue;
+      // At overview scales, a representative sample prevents coincident
+      // assets from obscuring the basemap. Every item appears as the user
+      // zooms in or pans into its immediate area.
+      if (zoom <= 12 && f.c === "point" && f.i % 6 !== 0) continue;
+      if (zoom <= 13 && f.c === "line" && f.i % 3 !== 0) continue;
       const netColor = NET_COLORS[f.n];
       const style = getTypeStyle(f.n, f.t, netColor);
 
@@ -717,7 +735,7 @@ export function MapView(props: MapProps) {
           rendered++;
           continue;
         }
-        const radius = getPointRadius(style);
+        const radius = getPointRadius(style) * symbolScale;
         if (!useFastSymbols) {
           group.addLayer(
             L.circleMarker([lat, lon], {
@@ -733,7 +751,7 @@ export function MapView(props: MapProps) {
           );
         }
         const c = L.circleMarker([lat, lon], {
-          radius: useFastSymbols ? Math.max(1.8, radius * 0.78) : Math.max(2.1, radius * 0.88),
+          radius: useFastSymbols ? Math.max(0.95, radius * 0.82) : Math.max(1.4, radius * 0.9),
           color: style.color,
           fillColor: style.color,
           fillOpacity: 1,
@@ -746,7 +764,7 @@ export function MapView(props: MapProps) {
         rendered++;
       } else if (f.g.t === "L") {
         const latlngs = f.g.c.map(([lon, lat]) => [lat, lon]) as [number, number][];
-        const weight = getLineWeight(style);
+        const weight = Math.max(0.75, getLineWeight(style) * symbolScale);
         const line = useFastSymbols
           ? addFastLine(group, latlngs, style, weight, renderer)
           : addFireflyLine(group, latlngs, style, weight, renderer);
@@ -756,7 +774,7 @@ export function MapView(props: MapProps) {
       } else if (f.g.t === "ML") {
         for (const seg of f.g.c) {
           const latlngs = seg.map(([lon, lat]) => [lat, lon]) as [number, number][];
-          const weight = getLineWeight(style);
+          const weight = Math.max(0.75, getLineWeight(style) * symbolScale);
           const line = useFastSymbols
             ? addFastLine(group, latlngs, style, weight, renderer)
             : addFireflyLine(group, latlngs, style, weight, renderer);
@@ -814,7 +832,7 @@ export function MapView(props: MapProps) {
 
     group.addTo(map);
     layersRef.current.features = group;
-  }, [props.features, visibleNetworkKey, props.maxFeatures, props.symbolMode, lang]);
+  }, [props.features, visibleNetworkKey, props.maxFeatures, props.symbolMode, lang, viewportVersion]);
 
   return (
     <div

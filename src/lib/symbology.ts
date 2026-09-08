@@ -588,7 +588,7 @@ export function getPointRadius(style: TypeStyle): number {
     : style.tone === "room" ? 0.18
     : style.tone === "equipment" ? 0.08
     : 0;
-  return Math.max(2.5, Math.min((style.radius ?? 3.2) * 0.68 + toneBoost, 4.8));
+  return Math.max(1.75, Math.min((style.radius ?? 3.2) * 0.5 + toneBoost, 3.35));
 }
 
 export function getLineWeight(style: TypeStyle): number {
@@ -596,7 +596,7 @@ export function getLineWeight(style: TypeStyle): number {
     style.tone === "mainLine" ? 0.55
     : style.tone === "secondaryLine" ? -0.05
     : 0;
-  return Math.max(1.25, Math.min((style.weight ?? 1.8) + toneBoost, 4.4));
+  return Math.max(0.95, Math.min((style.weight ?? 1.8) + toneBoost, 3.35));
 }
 
 /**
