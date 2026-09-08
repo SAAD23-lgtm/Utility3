@@ -357,7 +357,7 @@ export function MapView(props: MapProps) {
   const onFeatureClickRef = useRef(props.onFeatureClick);
   const onRoadClickRef = useRef(props.onRoadClick);
   const onSectorClickRef = useRef(props.onSectorClick);
-  const [basemap, setBasemap] = useState<BasemapKey>("streets");
+  const [basemap, setBasemap] = useState<BasemapKey>("dark");
   const [viewportVersion, setViewportVersion] = useState(0);
   const [hovered, setHovered] = useState<{
     title: string;

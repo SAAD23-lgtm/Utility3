@@ -159,11 +159,32 @@ function visitCoords(compact, bounds) {
 }
 
 function getLengthKm(props) {
-  const roadLength = Number(props.Length);
+  // Imported dashboard road GeoJSON stores kilometres in `length`; original
+  // source layers use `Length`. Both are already expressed in kilometres.
+  const roadLength = Number(props.Length ?? props.length);
   if (Number.isFinite(roadLength) && roadLength > 0) return compactNumber(roadLength, 4);
   const lengthM = Number(props.__length_m ?? props.SHAPE_Length ?? props.shape_Length ?? props.Shape_Length);
   if (Number.isFinite(lengthM) && lengthM > 0) return compactNumber(lengthM / 1000, 4);
   return undefined;
+}
+
+function coordsLengthKm(coords) {
+  if (!Array.isArray(coords) || coords.length < 2) return 0;
+  const earthRadiusKm = 6371.0088;
+  let total = 0;
+  for (let index = 1; index < coords.length; index += 1) {
+    const [lon1, lat1] = coords[index - 1];
+    const [lon2, lat2] = coords[index];
+    if (![lon1, lat1, lon2, lat2].every(Number.isFinite)) continue;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    total += 2 * earthRadiusKm * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  return compactNumber(total, 4);
 }
 
 function normalizeMaterial(value) {
@@ -347,7 +368,7 @@ function buildRoads() {
       type: clean(props["نوع_الطريق"] || props.type) || "",
       field: clean(props.Field || props.field) || "",
       status: clean(props["موقف_التنفيذ"] || props.status) || "",
-      length: getLengthKm(props) || 0,
+      length: getLengthKm(props) || coordsLengthKm(g.c),
       notes: clean(props["ملاحظات"]) || null,
       coords: g.c,
     });
