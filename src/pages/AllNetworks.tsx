@@ -346,10 +346,10 @@ export function AllNetworksPage() {
                   bbox={s.bbox}
                   sectors={visibleSectors}
                   adminBoundaries={sectorsQ.data?.adminBoundaries}
-                  features={mapFeatures}
+                  features={allFeatures}
                   visibleNetworks={enabled}
                   flyToFeature={flyTo}
-                  maxFeatures={24000}
+                  maxFeatures={100000}
                 />
                 {!allLoaded && (
                   <div className="absolute inset-0 flex items-center justify-center bg-background/60 z-[450] backdrop-blur-sm">

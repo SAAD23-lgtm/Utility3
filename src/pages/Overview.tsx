@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSummary, useSectors, useRoads, formatCount, formatKm } from "@/lib/data";
 import { PageContainer } from "@/components/Layout";
 import { StatCard } from "@/components/StatCard";
 import { CardWrap, Donut, MiniBars } from "@/components/Charts";
 import { MapView } from "@/components/Map";
-import { STATUS_COLORS } from "@/lib/types";
+import { NET_COLORS, STATUS_COLORS, type NetKey, type SimpleFeature } from "@/lib/types";
+import { useQueries } from "@tanstack/react-query";
 import {
   Building2,
   Construction,
@@ -19,6 +20,9 @@ import {
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 
+const ALL_KEYS: NetKey[] = ["electric", "gas", "water", "sewage", "telecom", "irrigation"];
+const BASE = import.meta.env.BASE_URL;
+
 export function OverviewPage() {
   const { t, td, lang } = useI18n();
   const summary = useSummary();
@@ -27,6 +31,30 @@ export function OverviewPage() {
   const [colorByStatus, setColorByStatus] = useState(true);
   const [highlightSector, setHighlightSector] = useState<string | null>(null);
   const [sectorQuery, setSectorQuery] = useState("");
+  const [loadNetworkLayers, setLoadNetworkLayers] = useState(false);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setLoadNetworkLayers(true), 180);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  const networkQueries = useQueries({
+    queries: ALL_KEYS.map((key) => ({
+      queryKey: ["network", key],
+      queryFn: async () => {
+        const response = await fetch(`${BASE}data/network-${key}.json`, { cache: "force-cache" });
+        if (!response.ok) throw new Error(`Failed to load ${key}`);
+        return response.json() as Promise<{ features: SimpleFeature[] }>;
+      },
+      enabled: loadNetworkLayers,
+      staleTime: Infinity,
+    })),
+  });
+
+  const overviewFeatures = useMemo(
+    () => networkQueries.flatMap((query) => query.data?.features || []),
+    [networkQueries.map((query) => query.data).join("|")]
+  );
 
   const sectorStatusData = useMemo(
     () =>
@@ -261,6 +289,9 @@ export function OverviewPage() {
             sectors={sectorsData.polygons}
             adminBoundaries={sectorsData.adminBoundaries}
             roads={roadsData.roads}
+            features={overviewFeatures}
+            visibleNetworks={new Set(ALL_KEYS)}
+            maxFeatures={100000}
             showRoads
             colorRoadsByStatus={colorByStatus}
             colorSectorsByStatus={colorByStatus}

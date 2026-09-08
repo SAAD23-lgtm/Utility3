@@ -42,16 +42,14 @@ const BASEMAPS: Record<
   dark: {
     labelAr: "داكن",
     labelEn: "Dark",
-    url: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
-    labelsUrl: "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
-    subdomains: "abcd",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    labelsUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
   },
   light: {
     labelAr: "فاتح",
     labelEn: "Light",
-    url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-    labelsUrl: "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png",
-    subdomains: "abcd",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    labelsUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
   },
   streets: {
     labelAr: "طرق",
@@ -63,8 +61,7 @@ const BASEMAPS: Record<
     labelAr: "صور",
     labelEn: "Imagery",
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    labelsUrl: "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
-    subdomains: "abcd",
+    labelsUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
   },
 };
 
@@ -197,6 +194,15 @@ function getSectorLatLngs(rings: [number, number][][]) {
     .map((ring) => ring.map(([lon, lat]) => [lat, lon]) as [number, number][]);
 }
 
+function getStudyBounds(sectors?: SectorPolygon[]) {
+  const coords = (sectors || []).flatMap((sector) => sector.coords.flat());
+  const valid = coords.filter(([lon, lat]) => Number.isFinite(lon) && Number.isFinite(lat));
+  if (valid.length === 0) return null;
+  const lons = valid.map(([lon]) => lon);
+  const lats = valid.map(([, lat]) => lat);
+  return [[Math.min(...lats), Math.min(...lons)], [Math.max(...lats), Math.max(...lons)]] as L.LatLngBoundsLiteral;
+}
+
 function createSectorLabelIcon(name: string, color: string) {
   return L.divIcon({
     className: "sector-label",
@@ -321,8 +327,8 @@ function addFastLine(
   const isMain = style.tone === "mainLine" || style.tone === "primary";
   const line = L.polyline(latlngs, {
     color: style.color,
-    weight: Math.max(0.65, weight * (isMain ? 0.95 : 0.78)),
-    opacity: Math.min(style.opacity ?? 0.86, isMain ? 0.82 : 0.62),
+    weight: Math.max(1.15, weight * (isMain ? 1.08 : 0.94)),
+    opacity: Math.min(style.opacity ?? 0.94, isMain ? 0.94 : 0.8),
     dashArray: style.dashArray,
     lineCap: "round",
     lineJoin: "round",
@@ -411,15 +417,20 @@ export function MapView(props: MapProps) {
     return () => observer.disconnect();
   }, []);
 
-  // Fit to bbox
+  // Prefer actual study sectors: raw network bounds can include a stray point.
   useEffect(() => {
-    if (!mapRef.current || !props.bbox) return;
-    const [minLon, minLat, maxLon, maxLat] = props.bbox;
+    if (!mapRef.current) return;
+    const sectorBounds = getStudyBounds(props.sectors);
+    const fallbackBounds = props.bbox
+      ? [[props.bbox[1], props.bbox[0]], [props.bbox[3], props.bbox[2]]] as L.LatLngBoundsLiteral
+      : null;
+    const bounds = sectorBounds || fallbackBounds;
+    if (!bounds) return;
     mapRef.current.fitBounds(
-      [[minLat, minLon], [maxLat, maxLon]],
-      { padding: [20, 20] }
+      bounds,
+      { padding: [28, 28], maxZoom: 15 }
     );
-  }, [props.bbox]);
+  }, [props.bbox, props.sectors]);
 
   // Fly to feature
   useEffect(() => {
@@ -633,7 +644,7 @@ export function MapView(props: MapProps) {
     }
     if (!props.features || props.features.length === 0) return;
     const visible = props.visibleNetworks;
-    const cap = props.maxFeatures ?? 60000;
+    const cap = props.maxFeatures ?? Number.POSITIVE_INFINITY;
     const group = L.layerGroup();
     const renderer = L.canvas({ padding: 0.35 });
     const isNetworkDetail = props.symbolMode === "network-detail";
@@ -713,12 +724,12 @@ export function MapView(props: MapProps) {
           );
         }
         const c = L.circleMarker([lat, lon], {
-          radius: useFastSymbols ? Math.max(1, radius * 0.58) : Math.max(1.15, radius * 0.68),
+          radius: useFastSymbols ? Math.max(1.8, radius * 0.78) : Math.max(2.1, radius * 0.88),
           color: style.color,
           fillColor: style.color,
-          fillOpacity: 0.96,
-          weight: 0,
-          opacity: 0.95,
+          fillOpacity: 1,
+          weight: 0.35,
+          opacity: 1,
           renderer,
         });
         c.on("mouseover", (e) => {
