@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSummary, useSectors, formatCount, formatKm } from "@/lib/data";
 import { PageContainer } from "@/components/Layout";
 import { StatCard } from "@/components/StatCard";
-import { CardWrap, Donut, MiniBars } from "@/components/Charts";
+import { CardWrap, Donut } from "@/components/Charts";
 import { MapView } from "@/components/Map";
 import { DataTable } from "@/components/DataTable";
 import { NET_COLORS, type NetKey, type SimpleFeature } from "@/lib/types";
