@@ -276,7 +276,9 @@
     height: 100%;
   }
   .all-networks-length-chart {
-    grid-column: 1 / -1;
+    grid-column: 2;
+    grid-row: 3;
+    min-height: 220px;
   }
 
   @media (max-width: 767px) {
@@ -285,6 +287,10 @@
     }
     .all-networks-grid > .glass-card:last-child {
       min-height: 430px;
+    }
+    .all-networks-length-chart {
+      grid-column: 1 / -1;
+      grid-row: auto;
     }
     .all-networks-stats .glass-card {
       min-width: 0;
