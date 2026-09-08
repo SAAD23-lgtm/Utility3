@@ -153,11 +153,11 @@ export function AllNetworksPage() {
         >
           <div className="grid grid-cols-2 gap-1.5 overflow-y-auto h-full pr-1">
             {leftFeatureDetails.map((item, index) => (
-              <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-2 py-2 min-w-0">
-                <div className="truncate text-[10px] font-semibold text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
+              <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-2.5 py-2.5 min-w-0">
+                <div className="truncate text-[11px] font-semibold text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
                 <div className="mt-0.5 flex items-center justify-between gap-1">
-                  <span className="truncate text-[9px] text-muted-foreground">{netLabel(item.key, lang)}</span>
-                  <span className="shrink-0 text-[14px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
+                  <span className="truncate text-[10px] text-muted-foreground">{netLabel(item.key, lang)}</span>
+                  <span className="shrink-0 text-[16px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
                 </div>
               </div>
             ))}
@@ -242,11 +242,11 @@ export function AllNetworksPage() {
           <CardWrap title={lang === "ar" ? "التفاصيل الرئيسية" : "Primary details"} delay={0.15}>
             <div className="grid grid-cols-2 gap-1.5 overflow-y-auto h-full pr-1">
               {rightFeatureDetails.map((item, index) => (
-                <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-2 py-2 min-w-0">
-                  <div className="truncate text-[10px] font-semibold text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
+                <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-2.5 py-2.5 min-w-0">
+                  <div className="truncate text-[11px] font-semibold text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
                   <div className="mt-0.5 flex items-center justify-between gap-1">
-                    <span className="truncate text-[9px] text-muted-foreground">{netLabel(item.key, lang)}</span>
-                    <span className="shrink-0 text-[14px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
+                    <span className="truncate text-[10px] text-muted-foreground">{netLabel(item.key, lang)}</span>
+                    <span className="shrink-0 text-[16px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
                   </div>
                 </div>
               ))}
@@ -254,7 +254,7 @@ export function AllNetworksPage() {
           </CardWrap>
         </div>
 
-        <CardWrap title={t("card.lengths_by_network")} delay={0.25}>
+        <CardWrap title={t("card.lengths_by_network")} delay={0.25} className="all-networks-length-chart">
           <Donut
             data={lengthBreakdown}
             centerLabel={t("g.total")}
@@ -265,31 +265,8 @@ export function AllNetworksPage() {
           />
         </CardWrap>
 
-        <CardWrap title={t("card.top_implementing")} delay={0.3}>
-          <MiniBars
-            data={topImplementing(s.networks).map((d) => ({
-              name: td(d.name),
-              value: d.value,
-            }))}
-            color="#10b981"
-            maxItems={5}
-          />
-        </CardWrap>
 
       </div>
     </PageContainer>
   );
-}
-
-function topImplementing(networks: Record<NetKey, any>) {
-  const merged: Record<string, number> = {};
-  ALL_KEYS.forEach((k) => {
-    const imp = networks[k]?.byImplementing || {};
-    Object.entries(imp).forEach(([name, count]) => {
-      merged[name] = (merged[name] || 0) + (count as number);
-    });
-  });
-  return Object.entries(merged)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
 }

@@ -275,6 +275,9 @@
     gap: 0.375rem;
     height: 100%;
   }
+  .all-networks-length-chart {
+    grid-column: 1 / -1;
+  }
 
   @media (max-width: 767px) {
     .all-networks-grid > .glass-card {
