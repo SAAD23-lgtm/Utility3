@@ -117,12 +117,14 @@ export function AllNetworksPage() {
   );
 
   const featureDetails = ALL_KEYS.flatMap((key) =>
-    Object.entries(s.networks[key]?.byType || {}).map(([type, value]) => ({
+    Object.entries(s.networks[key]?.byType || {})
+      .filter(([type]) => !["غير محدد", "غير محددة", "unknown", "undefined"].includes(type.trim().toLowerCase()))
+      .map(([type, value]) => ({
       key,
       type,
       value: Number(value),
       color: NET_COLORS[key],
-    }))
+      }))
   ).sort((a, b) => b.value - a.value).slice(0, 30);
   const leftFeatureDetails = featureDetails.slice(0, 15);
   const rightFeatureDetails = featureDetails.slice(15, 30);
@@ -181,23 +183,6 @@ export function AllNetworksPage() {
         <span className="all-networks-filter-count">{formatCount(filteredFeatures.length)} {lang === "ar" ? "عنصر ظاهر" : "visible"}</span>
       </div>
       <div className="all-networks-grid">
-        <div className="all-networks-stats">
-          <StatCard
-            label={t("stat.total_network_elements")}
-            value={formatCount(totalFeatures)}
-            color="#f59e0b"
-            icon={<Layers className="w-4 h-4" />}
-          />
-          <StatCard
-            label={t("stat.total_lengths_all")}
-            value={formatCount(Math.round(totalLengthKm))}
-            unit={t("g.km")}
-            color="#10b981"
-            icon={<Activity className="w-4 h-4" />}
-            delay={0.05}
-          />
-        </div>
-
         <CardWrap
           title={lang === "ar" ? "تفاصيل عناصر الشبكات" : "Network element details"}
           delay={0.1}
