@@ -95,11 +95,11 @@ def main() -> None:
     count = 0
     for source_name, _geometry_type in pyogrio.list_layers(gdb):
         frame = gpd.read_file(gdb, layer=source_name).to_crs(epsg=4326)
-        # A few source records have corrupt coordinates (Inf/NaN). They cannot
-        # be represented in GeoJSON and would otherwise prevent the dashboard
-        # from loading the entire layer.
+        # Preserve every source record. A corrupt geometry is represented as
+        # null (valid GeoJSON), retaining its attributes without breaking map
+        # loading for the remaining features.
         valid_bounds = np.isfinite(frame.geometry.bounds.to_numpy()).all(axis=1)
-        frame = frame.loc[frame.geometry.notna() & valid_bounds]
+        frame.loc[frame.geometry.notna() & ~valid_bounds, frame.geometry.name] = None
         payload = json.loads(frame.to_json(na="null", drop_id=True, to_wgs84=False, default=str))
         safe_name = re.sub(r"[^a-z0-9]+", "_", source_name.lower()).strip("_")
         dump_geojson(f"source_{safe_name}", payload["features"])
