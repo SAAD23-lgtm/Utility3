@@ -37,7 +37,6 @@ export function AllNetworksPage() {
   const summary = useSummary();
   const sectorsQ = useSectors();
   const [enabled, setEnabled] = useState<Set<NetKey>>(new Set(ALL_KEYS));
-  const [activeNet, setActiveNet] = useState<NetKey | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [flyTo, setFlyTo] = useState<SimpleFeature | null>(null);
   const [loadNetworks, setLoadNetworks] = useState(false);
@@ -129,20 +128,20 @@ export function AllNetworksPage() {
     key: k,
   }));
 
+  const featureDetails = ALL_KEYS.flatMap((key) =>
+    Object.entries(s.networks[key]?.byType || {}).map(([type, value]) => ({
+      key,
+      type,
+      value: Number(value),
+      color: NET_COLORS[key],
+    }))
+  ).sort((a, b) => b.value - a.value);
+
   const lengthBreakdown = ALL_KEYS.map((k) => ({
     name: netLabel(k, lang, true),
     value: Number((s.networks[k]?.totalLengthKm || 0).toFixed(1)),
     color: NET_COLORS[k],
   })).filter((d) => d.value > 0);
-
-  const toggleNet = (k: NetKey) => {
-    setEnabled((prev) => {
-      const next = new Set(prev);
-      if (next.has(k)) next.delete(k);
-      else next.add(k);
-      return next;
-    });
-  };
 
   return (
     <PageContainer>
@@ -165,7 +164,7 @@ export function AllNetworksPage() {
         </div>
 
         <CardWrap
-          title={t("card.networks_toggle")}
+          title={lang === "ar" ? "تفاصيل عناصر الشبكات" : "Network element details"}
           delay={0.1}
           className="all-networks-toggle"
           right={
@@ -195,74 +194,16 @@ export function AllNetworksPage() {
             </div>
           }
         >
-          <div className="space-y-1.5 overflow-hidden h-full pr-1">
-            {ALL_KEYS.map((k, i) => {
-              const stat = s.networks[k];
-              const insight = networkInsights[k];
-              const isOn = enabled.has(k);
-              const isActive = activeNet === k;
-              return (
-                <motion.button
-                  key={k}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  onClick={() => toggleNet(k)}
-                  onMouseEnter={() => setActiveNet(k)}
-                  onMouseLeave={() => setActiveNet(null)}
-                  className={`w-full text-start p-1.5 rounded-md transition border ${
-                    isActive ? "border-primary/40" : "border-border/40"
-                  } ${isOn ? "" : "opacity-40"}`}
-                  style={{
-                    background: isOn ? `${NET_COLORS[k]}14` : "transparent",
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="flex items-center gap-1.5 text-[10.5px] font-bold">
-                      <NetworkIcon network={k} className="w-3.5 h-3.5" />
-                      <span style={{ color: NET_COLORS[k] }}>
-                        {netLabel(k, lang)}
-                      </span>
-                    </span>
-                    <span
-                      className="w-3.5 h-3.5 rounded-sm border-2"
-                      style={{
-                        borderColor: NET_COLORS[k],
-                        background: isOn ? NET_COLORS[k] : "transparent",
-                      }}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 text-[9.5px]">
-                    <div className="bg-background/40 rounded-sm p-1 min-w-0">
-                      <div className="text-muted-foreground">{t("stat.total_elements")}</div>
-                      <div
-                        className="font-bold tabular-nums truncate"
-                        style={{ color: NET_COLORS[k] }}
-                      >
-                        {formatCount(stat?.total || 0)}
-                      </div>
-                    </div>
-                    <div className="bg-background/40 rounded-sm p-1 min-w-0">
-                      <div className="text-muted-foreground">{t("stat.total_lengths")}</div>
-                      <div
-                        className="font-bold tabular-nums truncate"
-                        style={{ color: NET_COLORS[k] }}
-                      >
-                        {(stat?.totalLengthKm || 0).toFixed(1)} {t("g.km")}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-1 flex items-center justify-between gap-2 text-[8.5px] text-muted-foreground">
-                    <span className="truncate">
-                      {t("biz.coverage")} <b className="font-black tabular-nums text-foreground/80">{insight.sectorCount}/{sectorNames.length}</b>
-                    </span>
-                    <span className="shrink-0">
-                      {t("stat.lines")} <b className="font-black tabular-nums text-foreground/80">{insight.linePct.toFixed(0)}%</b>
-                    </span>
-                  </div>
-                </motion.button>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-1 overflow-y-auto h-full pr-1">
+            {featureDetails.map((item, index) => (
+              <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-1.5 py-1.5 min-w-0">
+                <div className="truncate text-[9px] text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
+                <div className="mt-0.5 flex items-center justify-between gap-1">
+                  <span className="truncate text-[8px] text-muted-foreground">{netLabel(item.key, lang)}</span>
+                  <span className="shrink-0 text-[11px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </CardWrap>
 
