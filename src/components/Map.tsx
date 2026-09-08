@@ -103,6 +103,21 @@ function applyBasemap(
         try {
           if (layer.type === "background") glMap.setPaintProperty(layer.id, "background-color", "#000000");
           if (layer.type === "fill") glMap.setPaintProperty(layer.id, "fill-color", "#020304");
+          if (layer.type === "line") {
+            const id = layer.id.toLowerCase();
+            const roadColor = /motorway|trunk|primary/.test(id)
+              ? "#66717f"
+              : /secondary|tertiary/.test(id)
+                ? "#4b5563"
+                : "#303844";
+            glMap.setPaintProperty(layer.id, "line-color", roadColor);
+            glMap.setPaintProperty(layer.id, "line-opacity", 0.78);
+          }
+          if (layer.type === "symbol") {
+            glMap.setPaintProperty(layer.id, "text-color", "#a8b1bf");
+            glMap.setPaintProperty(layer.id, "text-halo-color", "#000000");
+            glMap.setPaintProperty(layer.id, "text-halo-width", 1.1);
+          }
         } catch {
           // Some style layers intentionally do not expose a fill color.
         }
