@@ -85,7 +85,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
   const activeLabel = hoverIdx !== null ? displayData[hoverIdx]?.name : centerLabel;
   if (compact) {
     return (
-      <div className="relative grid h-full w-full min-h-[150px] grid-cols-[minmax(112px,1fr)_clamp(92px,34%,116px)] content-center items-center gap-2 overflow-hidden max-[430px]:grid-cols-1 max-[430px]:content-start">
+      <div className="relative grid h-full w-full min-h-[150px] grid-cols-[minmax(150px,1fr)_clamp(132px,36%,176px)] content-center items-center gap-3 overflow-hidden max-[430px]:grid-cols-1 max-[430px]:content-start">
         <div className="min-h-0 min-w-0 space-y-1.5 overflow-hidden max-h-full pl-1 max-[430px]:order-2">
           {displayData.map((d, i) => {
             const pct = total > 0 ? (d.value / total) * 100 : 0;
@@ -95,7 +95,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
                 key={i}
                 onMouseEnter={() => setHoverIdx(i)}
                 onMouseLeave={() => setHoverIdx(null)}
-                className={`rounded border border-white/5 bg-white/[0.025] px-2 py-1.5 text-[8.5px] leading-[1.2] cursor-pointer transition ${hoverIdx !== null && hoverIdx !== i ? "opacity-40" : ""}`}
+                className={`rounded border border-white/5 bg-white/[0.025] px-2.5 py-2 text-[10px] leading-[1.2] cursor-pointer transition ${hoverIdx !== null && hoverIdx !== i ? "opacity-40" : ""}`}
               >
                 <div className="flex items-start gap-1.5">
                   <span
@@ -115,7 +115,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
           })}
         </div>
 
-        <div className="relative aspect-square w-full max-w-[116px] shrink-0 justify-self-center max-[430px]:order-1 max-[430px]:max-w-[120px]">
+        <div className="relative aspect-square w-full max-w-[176px] shrink-0 justify-self-center max-[430px]:order-1 max-[430px]:max-w-[150px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie

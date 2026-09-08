@@ -278,12 +278,16 @@
   .all-networks-length-chart {
     grid-column: 2;
     grid-row: 3;
-    min-height: 220px;
+    min-height: 0;
+    height: 270px;
+    align-self: start;
   }
   .all-networks-top-implementing {
     grid-column: 1 / -1;
     grid-row: 4;
-    min-height: 220px;
+    min-height: 0;
+    height: 250px;
+    align-self: start;
   }
 
   @media (max-width: 767px) {
@@ -296,10 +300,12 @@
     .all-networks-length-chart {
       grid-column: 1 / -1;
       grid-row: auto;
+      height: 270px;
     }
     .all-networks-top-implementing {
       grid-column: 1 / -1;
       grid-row: auto;
+      height: 250px;
     }
     .all-networks-stats .glass-card {
       min-width: 0;
