@@ -6,7 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const inputDir =
   process.argv[2] ||
-  "e:/Work_Websites/Utility/obour_networks/public/data/layers";
+  path.join(root, "public", "data", "layers");
 const outputDir = path.join(root, "public", "data");
 
 const NETWORKS = {
@@ -154,7 +154,7 @@ function visitCoords(compact, bounds) {
 function getLengthKm(props) {
   const roadLength = Number(props.Length);
   if (Number.isFinite(roadLength) && roadLength > 0) return compactNumber(roadLength, 4);
-  const lengthM = Number(props.__length_m ?? props.SHAPE_Length);
+  const lengthM = Number(props.__length_m ?? props.SHAPE_Length ?? props.shape_Length);
   if (Number.isFinite(lengthM) && lengthM > 0) return compactNumber(lengthM / 1000, 4);
   return undefined;
 }
@@ -223,9 +223,9 @@ function buildFeature(netKey, layerId, feature, index) {
     n: netKey,
     t: type,
     c: category,
-    s: pick(props, ["sectors", "اسم_القطاع"]),
-    st: normalizeMaterial(pick(props, ["manufacturing_material", "Manufacturing_material", "material"])),
-    imp: pick(props, ["Implementing"]),
+    s: pick(props, ["sectors", "اسم_القطاع", "القطاع"]),
+    st: normalizeMaterial(pick(props, ["manufacturing_material", "Manufacturing_material", "material", "مادة_التصنيع", "مادةالصنع"])),
+    imp: pick(props, ["Implementing", "الشركة_المنفذة", "الشركةالمنفذة"]),
     d: diameter,
     l: category === "line" ? length : undefined,
     g,
@@ -295,14 +295,14 @@ function buildSectors() {
     const g = compactGeom(feature.geometry);
     if (!g || g.t !== "PG") continue;
     visitCoords(g, cityBounds);
-    const areaRaw = Number(props["المساحة"] ?? props.__area_m2 ?? props.SHAPE_Area ?? 0);
+    const areaRaw = Number(props["المساحة"] ?? props.area ?? props.__area_m2 ?? props.SHAPE_Area ?? 0);
     polygons.push({
       id: index + 1,
-      name: clean(props["اسم_القطاع"]) || `قطاع ${index + 1}`,
+      name: clean(props["اسم_القطاع"] || props.name) || `قطاع ${index + 1}`,
       area: compactNumber(areaRaw, 4),
-      phase: clean(props["المرحلة"]) || "",
-      status: clean(props.Statuse_Sector) || "",
-      order: Number(props["الترتيب"]) || index + 1,
+      phase: clean(props["المرحلة"] || props.phase) || "",
+      status: clean(props.Statuse_Sector || props.status) || "",
+      order: Number(props["الترتيب"] || props.order) || index + 1,
       coords: g.c,
     });
   }
@@ -316,8 +316,8 @@ function buildSectors() {
     visitCoords(g, cityBounds);
     adminBoundaries.push({
       id: index + 1,
-      name: clean(props["المرحلة"] || props.__typeValue) || `حد إداري ${index + 1}`,
-      area: compactNumber(Number(props.__area_m2 ?? props.SHAPE_Area ?? 0), 4),
+      name: clean(props["المرحلة"] || props.name || props.__typeValue) || `حد إداري ${index + 1}`,
+      area: compactNumber(Number(props.area ?? props.__area_m2 ?? props.SHAPE_Area ?? 0), 4),
       coords: g.c,
     });
   }
@@ -335,11 +335,11 @@ function buildRoads() {
     visitCoords(g, cityBounds);
     roads.push({
       id: index + 1,
-      sector: clean(props["اسم_القطاع"]) || "",
-      district: clean(props["اسم_الحي"] || props["المرحلة"]) || "",
-      type: clean(props["نوع_الطريق"]) || "",
-      field: clean(props.Field) || "",
-      status: clean(props["موقف_التنفيذ"]) || "",
+      sector: clean(props["اسم_القطاع"] || props.sector) || "",
+      district: clean(props["اسم_الحي"] || props["المرحلة"] || props.district) || "",
+      type: clean(props["نوع_الطريق"] || props.type) || "",
+      field: clean(props.Field || props.field) || "",
+      status: clean(props["موقف_التنفيذ"] || props.status) || "",
       length: getLengthKm(props) || 0,
       notes: clean(props["ملاحظات"]) || null,
       coords: g.c,
