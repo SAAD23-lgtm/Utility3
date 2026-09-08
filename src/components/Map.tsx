@@ -33,6 +33,7 @@ interface MapProps {
   colorSectorsByStatus?: boolean;
   maxFeatures?: number;
   symbolMode?: "combined" | "network-detail";
+  fitToFeatures?: boolean;
 }
 
 type BasemapKey = "dark" | "light" | "streets" | "satellite";
@@ -243,6 +244,24 @@ function getStudyBounds(sectors?: SectorPolygon[]) {
   const lons = valid.map(([lon]) => lon);
   const lats = valid.map(([, lat]) => lat);
   return [[Math.min(...lats), Math.min(...lons)], [Math.max(...lats), Math.max(...lons)]] as L.LatLngBoundsLiteral;
+}
+
+function getFeatureBounds(features?: SimpleFeature[]): L.LatLngBoundsLiteral | null {
+  const coords: Array<[number, number]> = [];
+  (features || []).forEach((feature) => {
+    if (feature.g.t === "P") coords.push(feature.g.c as [number, number]);
+    else if (feature.g.t === "L" || feature.g.t === "ML" || feature.g.t === "PG") {
+      (feature.g.c as Array<[number, number]>).forEach((point) => coords.push(point));
+    }
+  });
+  if (!coords.length) return null;
+  const valid = coords.filter(([lon, lat]) => Number.isFinite(lon) && Number.isFinite(lat));
+  if (!valid.length) return null;
+  const lons = valid.map(([lon]) => lon);
+  const lats = valid.map(([, lat]) => lat);
+  const padLon = Math.max((Math.max(...lons) - Math.min(...lons)) * 0.08, 0.001);
+  const padLat = Math.max((Math.max(...lats) - Math.min(...lats)) * 0.08, 0.001);
+  return [[Math.min(...lats) - padLat, Math.min(...lons) - padLon], [Math.max(...lats) + padLat, Math.max(...lons) + padLon]];
 }
 
 function createSectorLabelIcon(name: string, color: string) {
@@ -465,7 +484,8 @@ export function MapView(props: MapProps) {
   // Prefer actual study sectors: raw network bounds can include a stray point.
   useEffect(() => {
     if (!mapRef.current) return;
-    const sectorBounds = getStudyBounds(props.sectors);
+    const featureBounds = props.fitToFeatures ? getFeatureBounds(props.features) : null;
+    const sectorBounds = featureBounds || getStudyBounds(props.sectors);
     const fallbackBounds = props.bbox
       ? [[props.bbox[1], props.bbox[0]], [props.bbox[3], props.bbox[2]]] as L.LatLngBoundsLiteral
       : null;
@@ -475,7 +495,7 @@ export function MapView(props: MapProps) {
       bounds,
       { padding: [28, 28], maxZoom: 15 }
     );
-  }, [props.bbox, props.sectors]);
+  }, [props.bbox, props.sectors, props.features, props.fitToFeatures]);
 
   // Fly to feature
   useEffect(() => {

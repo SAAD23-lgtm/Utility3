@@ -261,6 +261,7 @@ export function AllNetworksPage() {
                   visibleNetworks={enabled}
                   flyToFeature={flyTo}
                   maxFeatures={100000}
+                  fitToFeatures
                 />
                 {!allLoaded && (
                   <div className="absolute inset-0 flex items-center justify-center bg-background/60 z-[450] backdrop-blur-sm">
