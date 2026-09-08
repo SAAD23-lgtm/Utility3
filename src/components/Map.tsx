@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { maplibreGL } from "@maplibre/maplibre-gl-leaflet";
+import "maplibre-gl/dist/maplibre-gl.css";
 import type {
   NetKey,
   AdminBoundaryPolygon,
@@ -69,11 +71,12 @@ const MAP_HALO = "#020617";
 const SECTOR_FALLBACK = "#14b8a6";
 const SECTOR_BOUNDARY = "#22d3ee";
 const ADMIN_BOUNDARY = "#94a3b8";
+const DARK_VECTOR_STYLE = "https://tiles.openfreemap.org/styles/dark";
 
 function applyBasemap(
   map: L.Map,
   key: BasemapKey,
-  layers: { base?: L.TileLayer; labels?: L.TileLayer }
+  layers: { base?: L.TileLayer; labels?: L.TileLayer; vector?: L.MaplibreGL }
 ) {
   if (layers.base) {
     map.removeLayer(layers.base);
@@ -83,13 +86,36 @@ function applyBasemap(
     map.removeLayer(layers.labels);
     layers.labels = undefined;
   }
+  if (layers.vector) {
+    map.removeLayer(layers.vector);
+    layers.vector = undefined;
+  }
+
+  if (key === "dark") {
+    const vector = maplibreGL({ style: DARK_VECTOR_STYLE, interactive: false });
+    vector.addTo(map);
+    layers.vector = vector;
+    const glMap = vector.getMaplibreMap();
+    glMap.once("load", () => {
+      // Keep roads, borders and labels from the vector style, while turning
+      // every land/water/building fill truly black.
+      for (const layer of glMap.getStyle().layers || []) {
+        try {
+          if (layer.type === "background") glMap.setPaintProperty(layer.id, "background-color", "#000000");
+          if (layer.type === "fill") glMap.setPaintProperty(layer.id, "fill-color", "#020304");
+        } catch {
+          // Some style layers intentionally do not expose a fill color.
+        }
+      }
+    });
+    return;
+  }
 
   const config = BASEMAPS[key];
   layers.base = L.tileLayer(config.url, {
     maxZoom: 19,
     subdomains: config.subdomains || "abc",
   }).addTo(map);
-  if (config.className) layers.base.getContainer()?.classList.add(config.className);
 
   if (config.labelsUrl) {
     layers.labels = L.tileLayer(config.labelsUrl, {

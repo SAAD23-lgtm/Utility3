@@ -4,15 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Esri's "dark gray" canvas is intentionally mid-gray. Keep its useful road
-   detail while presenting the dashboard's primary map in true black. */
-.map-black-basemap {
-  background: #000;
-  /* Retain the road geometry: this is a black basemap, not an empty black
-     canvas. The Esri dark-gray tiles become near-black while their streets
-     remain softly visible. */
-  filter: brightness(0.28) contrast(1.3) saturate(0.45);
-}
 
 
 :root {
