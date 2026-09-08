@@ -88,8 +88,8 @@ function applyBasemap(
   layers.base = L.tileLayer(config.url, {
     maxZoom: 19,
     subdomains: config.subdomains || "abc",
-    className: config.className,
   }).addTo(map);
+  if (config.className) layers.base.getContainer()?.classList.add(config.className);
 
   if (config.labelsUrl) {
     layers.labels = L.tileLayer(config.labelsUrl, {
