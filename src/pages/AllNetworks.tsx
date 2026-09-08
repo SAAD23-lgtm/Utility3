@@ -5,7 +5,6 @@ import { StatCard } from "@/components/StatCard";
 import { CardWrap, Donut, MiniBars } from "@/components/Charts";
 import { MapView } from "@/components/Map";
 import { DataTable } from "@/components/DataTable";
-import { NetworkIcon } from "@/components/NetworkIcon";
 import { NET_COLORS, type NetKey, type SimpleFeature } from "@/lib/types";
 import { useQueries } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,21 +15,6 @@ const ALL_KEYS: NetKey[] = ["electric", "gas", "water", "sewage", "telecom", "ir
 const BASE = import.meta.env.BASE_URL;
 
 type ViewMode = "map" | "table";
-
-interface NetworkInsight {
-  key: NetKey;
-  sectorCount: number;
-  topSector: string;
-  topParty: string;
-  linePct: number;
-  pointPct: number;
-  roomPct: number;
-  totalLengthKm: number;
-}
-
-function topRecordName(record: Record<string, number> | undefined) {
-  return Object.entries(record || {}).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || "";
-}
 
 export function AllNetworksPage() {
   const { t, td, lang } = useI18n();
@@ -99,28 +83,6 @@ export function AllNetworksPage() {
     0
   );
 
-  const sectorNames = sectorsQ.data.polygons
-    .map((sector) => sector.name)
-    .filter((name) => name && name.trim().length > 0);
-
-  const networkInsights: Record<NetKey, NetworkInsight> = ALL_KEYS.reduce((acc, key) => {
-    const stat = s.networks[key];
-    const byCategory = stat?.byCategory || {};
-    const total = stat?.total || 0;
-    const sectorCount = Object.keys(stat?.bySector || {}).length;
-    acc[key] = {
-      key,
-      sectorCount,
-      topSector: topRecordName(stat?.bySector),
-      topParty: topRecordName(stat?.byImplementing),
-      linePct: total > 0 ? ((byCategory.line || 0) / total) * 100 : 0,
-      pointPct: total > 0 ? ((byCategory.point || 0) / total) * 100 : 0,
-      roomPct: total > 0 ? ((byCategory.room || 0) / total) * 100 : 0,
-      totalLengthKm: stat?.totalLengthKm || 0,
-    };
-    return acc;
-  }, {} as Record<NetKey, NetworkInsight>);
-
   const featureDetails = ALL_KEYS.flatMap((key) =>
     Object.entries(s.networks[key]?.byType || {}).map(([type, value]) => ({
       key,
@@ -128,9 +90,9 @@ export function AllNetworksPage() {
       value: Number(value),
       color: NET_COLORS[key],
     }))
-  ).sort((a, b) => b.value - a.value).slice(0, 20);
-  const leftFeatureDetails = featureDetails.slice(0, 10);
-  const rightFeatureDetails = featureDetails.slice(10, 20);
+  ).sort((a, b) => b.value - a.value).slice(0, 30);
+  const leftFeatureDetails = featureDetails.slice(0, 15);
+  const rightFeatureDetails = featureDetails.slice(15, 30);
 
   const lengthBreakdown = ALL_KEYS.map((k) => ({
     name: netLabel(k, lang, true),
@@ -189,13 +151,13 @@ export function AllNetworksPage() {
             </div>
           }
         >
-          <div className="grid grid-cols-2 gap-1 overflow-y-auto h-full pr-1">
+          <div className="grid grid-cols-2 gap-1.5 overflow-y-auto h-full pr-1">
             {leftFeatureDetails.map((item, index) => (
-              <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-1.5 py-1.5 min-w-0">
-                <div className="truncate text-[9px] text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
+              <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-2 py-2 min-w-0">
+                <div className="truncate text-[10px] font-semibold text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
                 <div className="mt-0.5 flex items-center justify-between gap-1">
-                  <span className="truncate text-[8px] text-muted-foreground">{netLabel(item.key, lang)}</span>
-                  <span className="shrink-0 text-[11px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
+                  <span className="truncate text-[9px] text-muted-foreground">{netLabel(item.key, lang)}</span>
+                  <span className="shrink-0 text-[14px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
                 </div>
               </div>
             ))}
@@ -278,14 +240,14 @@ export function AllNetworksPage() {
 
         <div className="all-networks-side-charts">
           <CardWrap title={lang === "ar" ? "التفاصيل الرئيسية" : "Primary details"} delay={0.15}>
-            <div className="grid grid-cols-1 gap-1 overflow-y-auto h-full pr-1">
+            <div className="grid grid-cols-2 gap-1.5 overflow-y-auto h-full pr-1">
               {rightFeatureDetails.map((item, index) => (
-                <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-2 py-1.5 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="truncate text-[9px] text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
-                    <span className="shrink-0 text-[12px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
+                <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-2 py-2 min-w-0">
+                  <div className="truncate text-[10px] font-semibold text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
+                  <div className="mt-0.5 flex items-center justify-between gap-1">
+                    <span className="truncate text-[9px] text-muted-foreground">{netLabel(item.key, lang)}</span>
+                    <span className="shrink-0 text-[14px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
                   </div>
-                  <div className="mt-0.5 truncate text-[8px] text-muted-foreground">{netLabel(item.key, lang)}</div>
                 </div>
               ))}
             </div>
@@ -314,55 +276,6 @@ export function AllNetworksPage() {
           />
         </CardWrap>
 
-        <CardWrap title={t("card.network_share")} delay={0.35}>
-          <div className="all-networks-share-grid">
-            {ALL_KEYS.map((k) => {
-              const stat = s.networks[k];
-              if (!stat) return null;
-              const total = stat.total;
-              const insight = networkInsights[k];
-              const coveragePct = sectorNames.length > 0 ? (insight.sectorCount / sectorNames.length) * 100 : 0;
-              return (
-                <motion.div
-                  key={k}
-                  whileHover={{ scale: 1.03 }}
-                  className="rounded-md p-1.5 flex flex-col justify-between overflow-hidden"
-                  style={{
-                    background: `${NET_COLORS[k]}14`,
-                    border: `1px solid ${NET_COLORS[k]}40`,
-                  }}
-                >
-                  <div className="text-[9.5px] text-foreground/80 font-medium flex items-center gap-1">
-                    <NetworkIcon network={k} className="w-3.5 h-3.5" />
-                    <span className="truncate">{netLabel(k, lang, true)}</span>
-                  </div>
-                  <div>
-                    <div
-                      className="text-base font-black tabular-nums leading-none"
-                      style={{ color: NET_COLORS[k] }}
-                    >
-                      {formatCount(total)}
-                    </div>
-                    <div className="mt-1 grid grid-cols-2 gap-1 text-[8px] text-muted-foreground">
-                      <span className="truncate">
-                        {t("biz.coverage")} <b className="font-black text-foreground/80 tabular-nums">{coveragePct.toFixed(0)}%</b>
-                      </span>
-                      <span className="truncate">
-                        {t("g.km")} <b className="font-black text-foreground/80 tabular-nums">{Math.round(insight.totalLengthKm)}</b>
-                      </span>
-                      <span className="truncate">
-                        {t("cat.line")} <b className="font-black text-foreground/80 tabular-nums">{insight.linePct.toFixed(0)}%</b>
-                      </span>
-                      <span className="truncate">
-                        {t("cat.point")} <b className="font-black text-foreground/80 tabular-nums">{insight.pointPct.toFixed(0)}%</b>
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </CardWrap>
       </div>
     </PageContainer>
   );
