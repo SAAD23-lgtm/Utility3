@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSummary, useSectors, formatCount, formatKm } from "@/lib/data";
 import { PageContainer } from "@/components/Layout";
 import { StatCard } from "@/components/StatCard";
-import { CardWrap, Donut, MiniBars } from "@/components/Charts";
+import { CardWrap, MiniBars, SerialChart } from "@/components/Charts";
 import { MapView } from "@/components/Map";
 import { DataTable } from "@/components/DataTable";
 import { NET_COLORS, type NetKey, type SimpleFeature } from "@/lib/types";
@@ -255,14 +255,7 @@ export function AllNetworksPage() {
         </div>
 
         <CardWrap title={t("card.lengths_by_network")} delay={0.25} className="all-networks-length-chart">
-          <Donut
-            data={lengthBreakdown}
-            centerLabel={t("g.total")}
-            centerValue={formatKm(totalLengthKm)}
-            thin
-            compact
-            maxItems={6}
-          />
+          <SerialChart data={lengthBreakdown} />
         </CardWrap>
 
         <CardWrap title={t("card.top_implementing")} delay={0.3} className="all-networks-top-implementing">

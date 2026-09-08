@@ -241,6 +241,47 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
   );
 }
 
+export function SerialChart({ data }: { data: Array<{ name: string; value: number; color?: string }> }) {
+  return (
+    <div className="h-full min-h-[180px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 18, right: 8, left: 0, bottom: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.45} />
+          <XAxis
+            dataKey="name"
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+            axisLine={{ stroke: "hsl(var(--border))" }}
+            tickLine={false}
+            interval={0}
+          />
+          <YAxis
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+            axisLine={false}
+            tickLine={false}
+            width={48}
+          />
+          <Tooltip
+            cursor={{ fill: "hsl(var(--muted) / 0.18)" }}
+            contentStyle={{
+              background: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: 8,
+              color: "hsl(var(--foreground))",
+              fontSize: 11,
+            }}
+            formatter={(value: number) => [formatCount(value), ""]}
+          />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            {data.map((item, index) => (
+              <Cell key={index} fill={item.color || CHART_PALETTE[index % CHART_PALETTE.length]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 interface BarsProps {
   data: Array<{ name: string; value: number; color?: string }>;
   vertical?: boolean;
