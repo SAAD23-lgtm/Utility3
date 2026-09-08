@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSummary, useSectors, formatCount, formatKm } from "@/lib/data";
 import { PageContainer } from "@/components/Layout";
 import { StatCard } from "@/components/StatCard";
-import { CardWrap, Donut } from "@/components/Charts";
+import { CardWrap, Donut, MiniBars } from "@/components/Charts";
 import { MapView } from "@/components/Map";
 import { DataTable } from "@/components/DataTable";
 import { NET_COLORS, type NetKey, type SimpleFeature } from "@/lib/types";
@@ -265,8 +265,32 @@ export function AllNetworksPage() {
           />
         </CardWrap>
 
+        <CardWrap title={t("card.top_implementing")} delay={0.3} className="all-networks-top-implementing">
+          <MiniBars
+            data={topImplementing(s.networks).map((d) => ({
+              name: td(d.name),
+              value: d.value,
+            }))}
+            color="#10b981"
+            maxItems={5}
+          />
+        </CardWrap>
+
 
       </div>
     </PageContainer>
   );
+}
+
+function topImplementing(networks: Record<NetKey, any>) {
+  const merged: Record<string, number> = {};
+  ALL_KEYS.forEach((k) => {
+    const imp = networks[k]?.byImplementing || {};
+    Object.entries(imp).forEach(([name, count]) => {
+      merged[name] = (merged[name] || 0) + Number(count || 0);
+    });
+  });
+  return Object.entries(merged)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
 }

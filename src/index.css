@@ -280,6 +280,11 @@
     grid-row: 3;
     min-height: 220px;
   }
+  .all-networks-top-implementing {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    min-height: 220px;
+  }
 
   @media (max-width: 767px) {
     .all-networks-grid > .glass-card {
@@ -289,6 +294,10 @@
       min-height: 430px;
     }
     .all-networks-length-chart {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .all-networks-top-implementing {
       grid-column: 1 / -1;
       grid-row: auto;
     }
