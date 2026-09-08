@@ -121,13 +121,6 @@ export function AllNetworksPage() {
     return acc;
   }, {} as Record<NetKey, NetworkInsight>);
 
-  const networkBreakdown = ALL_KEYS.map((k) => ({
-    name: netLabel(k, lang, true),
-    value: s.networks[k]?.total || 0,
-    color: NET_COLORS[k],
-    key: k,
-  }));
-
   const featureDetails = ALL_KEYS.flatMap((key) =>
     Object.entries(s.networks[key]?.byType || {}).map(([type, value]) => ({
       key,
@@ -135,7 +128,9 @@ export function AllNetworksPage() {
       value: Number(value),
       color: NET_COLORS[key],
     }))
-  ).sort((a, b) => b.value - a.value);
+  ).sort((a, b) => b.value - a.value).slice(0, 20);
+  const leftFeatureDetails = featureDetails.slice(0, 10);
+  const rightFeatureDetails = featureDetails.slice(10, 20);
 
   const lengthBreakdown = ALL_KEYS.map((k) => ({
     name: netLabel(k, lang, true),
@@ -195,7 +190,7 @@ export function AllNetworksPage() {
           }
         >
           <div className="grid grid-cols-2 gap-1 overflow-y-auto h-full pr-1">
-            {featureDetails.map((item, index) => (
+            {leftFeatureDetails.map((item, index) => (
               <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-1.5 py-1.5 min-w-0">
                 <div className="truncate text-[9px] text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
                 <div className="mt-0.5 flex items-center justify-between gap-1">
@@ -282,11 +277,18 @@ export function AllNetworksPage() {
         </div>
 
         <div className="all-networks-side-charts">
-          <CardWrap title={t("card.network_distribution")} delay={0.15}>
-            <MiniBars
-              data={networkBreakdown}
-              maxItems={6}
-            />
+          <CardWrap title={lang === "ar" ? "التفاصيل الرئيسية" : "Primary details"} delay={0.15}>
+            <div className="grid grid-cols-1 gap-1 overflow-y-auto h-full pr-1">
+              {rightFeatureDetails.map((item, index) => (
+                <div key={`${item.key}-${item.type}-${index}`} className="rounded-md border border-border/40 bg-background/35 px-2 py-1.5 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-[9px] text-foreground/90" title={td(item.type)}>{td(item.type)}</div>
+                    <span className="shrink-0 text-[12px] font-black tabular-nums" style={{ color: item.color }}>{formatCount(item.value)}</span>
+                  </div>
+                  <div className="mt-0.5 truncate text-[8px] text-muted-foreground">{netLabel(item.key, lang)}</div>
+                </div>
+              ))}
+            </div>
           </CardWrap>
         </div>
 
