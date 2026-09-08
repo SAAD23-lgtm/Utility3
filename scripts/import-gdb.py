@@ -22,27 +22,34 @@ DATA_DIR = ROOT / "public" / "data"
 
 # The names consumed by build-data.mjs, mapped to the supplied geodatabase.
 ALIASES = {
-    "Electrical_Feature": "electricity_assets",
-    "Electrical_Facilities": "electricity_facilities",
-    "Electrical_lines": "electricity_lines",
-    "Gas_Featur": "gas_assets",
-    "GAS_Facilities": "gas_facilities",
-    "Gas_lines": "gas_lines",
-    "Water_Pump_Valves": "water_assets",
+    "Electrical_Facilities": "electricity_assets",
+    "Electrical_Structure": "electricity_facilities",
+    "Electrical_Line": "electricity_lines",
+    "Gas_Facilities": "gas_assets",
+    "Gas_Structure": "gas_facilities",
+    "Gas_Line": "gas_lines",
+    "Water_Valves": "water_assets",
     "Water_Fire_Hydrant": "water_fire_hydrants",
-    "Water_Pariza": "water_house_connections",
-    "Water_Canals_Pipes": "water_lines",
-    "Water_Room": "water_rooms",
+    "Water_Pipes": "water_lines",
+    "Water_Structure": "water_rooms",
     "Sewer_Pipes": "sewer_lines",
     "Sewage_Manhole": "sewer_manholes",
     "Sewer_Stations": "sewer_rooms",
-    "rain_drains": "storm_drains",
-    "Telecom_Point": "telecom_assets",
-    "Telecom_Facilities": "telecom_facilities",
-    "Telecom_Lines": "telecom_lines",
+    "Telecom_Facilities": "telecom_assets",
+    "Telecom_Structure": "telecom_facilities",
+    "Telecom_Line": "telecom_lines",
     "Irrigation_Pipes": "irrigation_lines",
-    "Irrigation_Room": "irrigation_rooms",
+    "Irrigation_Structure": "irrigation_rooms",
     "Irrigation_Valves": "irrigation_valves",
+}
+
+REQUIRED_ALIASES = {
+    "electricity_assets", "electricity_facilities", "electricity_lines",
+    "gas_assets", "gas_facilities", "gas_lines",
+    "water_assets", "water_fire_hydrants", "water_house_connections", "water_lines", "water_rooms",
+    "sewer_lines", "sewer_manholes", "sewer_rooms", "storm_drains",
+    "telecom_assets", "telecom_facilities", "telecom_lines",
+    "irrigation_lines", "irrigation_rooms", "irrigation_valves",
 }
 
 
@@ -90,6 +97,8 @@ def main() -> None:
         raise SystemExit(f"Not a File Geodatabase directory: {gdb}")
 
     LAYERS_DIR.mkdir(parents=True, exist_ok=True)
+    for file in LAYERS_DIR.glob("*.geojson"):
+        file.unlink()
     restore_dashboard_base_layers()
 
     count = 0
@@ -107,6 +116,11 @@ def main() -> None:
             dump_geojson(alias, payload["features"])
         count += len(payload["features"])
         print(f"{source_name}: {len(payload['features'])} features")
+
+    # Write empty layers absent from the latest GDB so old features can never
+    # leak into the generated dashboard data.
+    for alias in REQUIRED_ALIASES - set(ALIASES.values()):
+        dump_geojson(alias, [])
 
     print(f"Imported {count} features from {len(pyogrio.list_layers(gdb))} layers into {LAYERS_DIR}")
 

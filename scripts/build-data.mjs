@@ -49,6 +49,13 @@ const TYPE_FIELDS = [
   "Electrical_Lines_Type",
   "Gas_Facility_Type",
   "Gas_Lines_Type",
+  "Gas_Lines_Grade",
+  "Water_Lines_Grade",
+  "Sewer_Lines_Grade",
+  "Structure_Type",
+  "Type_Of_Manholes",
+  "Telecom_line_degree",
+  "Electrical_Facility_Point",
   "Water_Feature_Type",
   "Room_type",
   "Rooms_type",
@@ -154,7 +161,7 @@ function visitCoords(compact, bounds) {
 function getLengthKm(props) {
   const roadLength = Number(props.Length);
   if (Number.isFinite(roadLength) && roadLength > 0) return compactNumber(roadLength, 4);
-  const lengthM = Number(props.__length_m ?? props.SHAPE_Length ?? props.shape_Length);
+  const lengthM = Number(props.__length_m ?? props.SHAPE_Length ?? props.shape_Length ?? props.Shape_Length);
   if (Number.isFinite(lengthM) && lengthM > 0) return compactNumber(lengthM / 1000, 4);
   return undefined;
 }
@@ -180,9 +187,9 @@ function sourceCode(props, index) {
 }
 
 function typeFromLayer(layerId, props, rawType, category) {
-  const diameter = clean(props.diameter || props.diameter2 || props.dimention || props.dimention);
+  const diameter = clean(props.diameter || props.Diameter || props.diameter2 || props.dimention || props.Dimention_Of_Manholes);
   const degree = clean(props.line_degree);
-  const room = clean(props.Room_type || props.Rooms_type || props.TYPE || props.Type);
+  const room = clean(props.Room_type || props.Rooms_type || props.TYPE || props.Type || props.Structure_Type || props.Type_Of_Manholes);
 
   if (layerId === "water_lines") return diameter ? `خط مياه ${diameter}` : "خط مياه";
   if (layerId === "water_house_connections") {
@@ -214,7 +221,7 @@ function buildFeature(netKey, layerId, feature, index) {
   const rawType = pick(props, TYPE_FIELDS);
   const type = typeFromLayer(layerId, props, rawType, category);
   const length = getLengthKm(props);
-  const diameter = pick(props, ["diameter", "diameter2", "dimention", "Capacity", "number_boxs"]);
+  const diameter = pick(props, ["diameter", "Diameter", "diameter2", "dimention", "Dimention_Of_Manholes", "Capacity", "number_boxs", "Number_OF_Boxs"]);
 
   return {
     i: index,
@@ -223,9 +230,9 @@ function buildFeature(netKey, layerId, feature, index) {
     n: netKey,
     t: type,
     c: category,
-    s: pick(props, ["sectors", "اسم_القطاع", "القطاع"]),
-    st: normalizeMaterial(pick(props, ["manufacturing_material", "Manufacturing_material", "material", "مادة_التصنيع", "مادةالصنع"])),
-    imp: pick(props, ["Implementing", "الشركة_المنفذة", "الشركةالمنفذة"]),
+    s: pick(props, ["sectors", "Sectors", "اسم_القطاع", "القطاع"]),
+    st: normalizeMaterial(pick(props, ["manufacturing_material", "Manufacturing_material", "Manufacturing_Material", "material", "مادة_التصنيع", "مادةالصنع"])),
+    imp: pick(props, ["Implementing", "Implementing_company", "lmplementing_company", "الشركة_المنفذة", "الشركةالمنفذة"]),
     d: diameter,
     l: category === "line" ? length : undefined,
     g,
