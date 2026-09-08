@@ -19,6 +19,7 @@ import {
   LineChart,
   Line,
   Legend,
+  LabelList,
 } from "recharts";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -272,6 +273,7 @@ export function SerialChart({ data }: { data: Array<{ name: string; value: numbe
             formatter={(value: number) => [formatCount(value), ""]}
           />
           <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            <LabelList dataKey="value" position="top" formatter={(value: number) => `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 })}م`} fill="hsl(var(--foreground))" fontSize={9} />
             {data.map((item, index) => (
               <Cell key={index} fill={item.color || CHART_PALETTE[index % CHART_PALETTE.length]} />
             ))}
