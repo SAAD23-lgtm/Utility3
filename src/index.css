@@ -255,8 +255,9 @@
   }
   .all-networks-toggle,
   .all-networks-side-charts {
-    min-height: 360px;
+    min-height: 0;
     overflow: hidden;
+    align-self: start;
   }
   .all-networks-map-shell {
     position: relative;
