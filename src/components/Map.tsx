@@ -777,11 +777,6 @@ export function MapView(props: MapProps) {
       if (rendered >= cap) break;
       if (visible && !visible.has(f.n)) continue;
       if (!isVisibleInViewport(f)) continue;
-      // At overview scales, a representative sample prevents coincident
-      // assets from obscuring the basemap. Every item appears as the user
-      // zooms in or pans into its immediate area.
-      if (zoom <= 12 && f.c === "point" && f.i % 6 !== 0) continue;
-      if (zoom <= 13 && f.c === "line" && f.i % 3 !== 0) continue;
       const netColor = NET_COLORS[f.n];
       const style = getTypeStyle(f.n, f.t, netColor);
 
