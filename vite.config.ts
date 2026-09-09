@@ -30,7 +30,8 @@ export default defineConfig({
   },
   server: {
     port,
-    strictPort: true,
+    // Use the next available port when another local Vite instance is running.
+    strictPort: false,
     host: "0.0.0.0",
     allowedHosts: true,
     fs: {
