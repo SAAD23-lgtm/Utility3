@@ -17,6 +17,7 @@ export interface NetworkStats {
   byDiameter: Record<string, number>;
   totalLengthKm: number;
   lengthByType: Record<string, number>;
+  lengthByDiameter?: Record<string, number>;
 }
 
 export interface RoadStats {

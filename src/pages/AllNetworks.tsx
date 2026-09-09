@@ -254,8 +254,12 @@ export function AllNetworksPage() {
 
   const waterDiameterLengths = useMemo(() => {
     const totals: Record<string, number> = {};
+    const summaryLengths = summary.data?.networks.water?.lengthByDiameter || {};
+    Object.entries(summaryLengths).forEach(([diameter, lengthKm]) => {
+      if (/^\d+(\.\d+)?$/.test(String(diameter))) totals[String(diameter)] = Number(lengthKm) * 1000;
+    });
     const rawWaterFeatures = networkData[2]?.features || [];
-    rawWaterFeatures.forEach((feature: SimpleFeature) => {
+    if (Object.keys(totals).length === 0) rawWaterFeatures.forEach((feature: SimpleFeature) => {
       const isLine = feature.c === "line" || feature.g?.t === "L" || feature.g?.t === "ML";
       if (!isLine || !feature.d) return;
       const diameter = String(feature.d).trim();
@@ -272,7 +276,7 @@ export function AllNetworksPage() {
         value: Number(value.toFixed(1)),
         color: ["#b5179e", "#087fba", "#8ba32b", "#824b84", "#d27b17", "#c7ad2f", "#4f8747", "#97744e", "#3a9386", "#5c5bb0", "#a33f6e", "#777777", "#168db2", "#0b70a1", "#8ba32b", "#8d4a91", "#d47c22"][index % 17],
       }));
-  }, [allLoaded, filteredFeatures, networkData]);
+  }, [allLoaded, filteredFeatures, networkData, summary.data]);
 
   const topImplementingData = useMemo(() => {
     if (!allLoaded && summary.data) {

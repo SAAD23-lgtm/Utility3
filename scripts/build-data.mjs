@@ -275,6 +275,7 @@ function buildStats(label, features) {
     byImplementing: {},
     byMaterial: {},
     byDiameter: {},
+    lengthByDiameter: {},
     totalLengthKm: 0,
     lengthByType: {},
   };
@@ -289,6 +290,9 @@ function buildStats(label, features) {
     if (feature.l) {
       stats.totalLengthKm += feature.l;
       increment(stats.lengthByType, feature.t, feature.l);
+      if (feature.c === "line" && feature.d) {
+        increment(stats.lengthByDiameter, feature.d, feature.l);
+      }
     }
   }
   stats.totalLengthKm = compactNumber(stats.totalLengthKm, 4);
