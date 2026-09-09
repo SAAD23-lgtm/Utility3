@@ -296,7 +296,8 @@
   }
   .all-networks-map-shell {
     position: relative;
-    min-height: 520px;
+    min-height: 380px;
+    height: 380px;
     overflow: hidden;
     border-radius: 0.5rem;
   }
@@ -414,39 +415,36 @@
       line-height: 1;
     }
     .all-networks-grid {
-      grid-template-columns: clamp(210px, 18vw, 250px) minmax(0, 1fr) clamp(220px, 19vw, 270px);
-      grid-template-rows: auto minmax(420px, 1fr) minmax(150px, auto);
-    }
-    .all-networks-stats {
-      grid-column: span 3 / span 3;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: clamp(320px, 30vw, 440px) minmax(0, 1fr);
+      grid-template-rows: 460px 280px;
     }
     .all-networks-toggle,
-    .all-networks-map-shell,
-    .all-networks-side-charts {
-      min-height: 420px;
-    }
     .all-networks-map-shell {
-      min-height: 420px;
-      grid-column: 1 / -1;
-      grid-row: 2;
+      height: 460px;
+      min-height: 460px;
     }
     .all-networks-toggle {
       grid-column: 1;
-      grid-row: 3;
+      grid-row: 1;
+      height: 460px;
+      overflow: hidden;
     }
-    .all-networks-side-charts {
-      grid-template-rows: repeat(2, minmax(0, 1fr));
-      grid-column: 3;
-      grid-row: 3;
+    .all-networks-map-shell {
+      grid-column: 2;
+      grid-row: 1;
+      height: 460px;
     }
     .all-networks-length-chart {
-      grid-column: 1 / -1;
-      grid-row: 4;
+      grid-column: 2 / span 1;
+      grid-row: 2;
+      height: 280px;
+      align-self: stretch;
     }
     .all-networks-top-implementing {
-      grid-column: 1 / -1;
-      grid-row: 5;
+      grid-column: 1 / span 1;
+      grid-row: 2;
+      height: 280px;
+      align-self: stretch;
     }
     .all-networks-share-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -569,7 +567,7 @@
   @media (min-width: 768px) {
     .overview-grid {
       grid-template-columns: clamp(210px, 17vw, 250px) minmax(0, 1fr) clamp(220px, 18vw, 270px);
-      grid-template-rows: auto minmax(420px, 1fr) minmax(150px, auto);
+      grid-template-rows: auto 380px 200px;
     }
     .overview-stats {
       grid-column: span 3 / span 3;
@@ -578,13 +576,16 @@
     .overview-panel,
     .overview-map-shell,
     .overview-side-charts {
-      min-height: 420px;
+      height: 380px;
+      min-height: 380px;
     }
     .overview-map-shell {
-      min-height: 420px;
+      height: 380px;
+      min-height: 380px;
     }
     .overview-side-charts {
-      grid-template-rows: repeat(2, minmax(0, 1fr));
+      height: 380px;
+      overflow: hidden;
     }
   }
 

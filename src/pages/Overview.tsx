@@ -296,28 +296,59 @@ export function OverviewPage() {
           </button>
         </div>
 
-        {/* Right side — donuts */}
-        <div className="overview-side-charts">
-          <CardWrap title={t("card.sector_progress")} delay={0.15}>
-            <Donut
-              data={sectorStatusData}
-              centerLabel={t("stat.total_sectors")}
-              centerValue={formatCount(totalSectors)}
-              compact
-              maxItems={4}
-            />
-          </CardWrap>
-          <CardWrap title={t("card.road_progress")} delay={0.2}>
-            <Donut
-              data={roadStatusData}
-              centerLabel={t("g.total_km")}
-              centerValue={formatKm(totalRoadsKm)}
-              thin
-              compact
-              maxItems={4}
-            />
-          </CardWrap>
-        </div>
+        {/* Right side — Icon Stat Tiles */}
+        <CardWrap title={lang === "ar" ? "حالة تنفيذ القطاعات والطرق" : "Sectors & Roads Progress"} delay={0.15} className="overview-side-charts">
+          <div className="grid grid-cols-2 gap-1.5 overflow-y-auto pr-1 h-full content-start">
+            {sectorStatusData.map((item, index) => {
+              const icons: Record<string, React.ReactNode> = {
+                "تم التسليم": <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
+                "جاري العمل ميدانياً": <Hammer className="w-4 h-4 text-amber-400 shrink-0" />,
+                "جاري العمل مكتبياً": <Laptop className="w-4 h-4 text-blue-400 shrink-0" />,
+                "لم يتم العمل عليهم": <AlertOctagon className="w-4 h-4 text-red-400 shrink-0" />,
+              };
+              const icon = icons[item.name] || <Building2 className="w-4 h-4 shrink-0" />;
+              return (
+                <div
+                  key={`${item.name}-${index}`}
+                  className="rounded-md border border-border/40 bg-background/35 p-2 flex flex-col justify-between hover:bg-secondary/30 transition min-w-0"
+                >
+                  <div className="text-[10px] font-bold text-foreground/80 truncate leading-tight" title={item.name}>
+                    {item.name}
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-1">
+                    <div style={{ color: item.color }}>
+                      {icon}
+                    </div>
+                    <span className="text-base font-black tabular-nums leading-none" style={{ color: item.color }}>
+                      {formatCount(item.value)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+            {roadStatusData.map((item, index) => {
+              const icon = <MapPinned className="w-4 h-4 shrink-0" />;
+              return (
+                <div
+                  key={`road-${item.name}-${index}`}
+                  className="rounded-md border border-border/40 bg-background/35 p-2 flex flex-col justify-between hover:bg-secondary/30 transition min-w-0"
+                >
+                  <div className="text-[10px] font-bold text-foreground/80 truncate leading-tight" title={`طرق: ${item.name}`}>
+                    طرق {item.name}
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-1">
+                    <div style={{ color: item.color }}>
+                      {icon}
+                    </div>
+                    <span className="text-sm font-black tabular-nums leading-none" style={{ color: item.color }}>
+                      {item.value} {t("g.km")}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardWrap>
 
         {/* Bottom row */}
         <CardWrap title={t("card.road_classification")} delay={0.25}>

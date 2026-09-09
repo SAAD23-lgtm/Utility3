@@ -86,8 +86,8 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
   const activeLabel = hoverIdx !== null ? displayData[hoverIdx]?.name : centerLabel;
   if (compact) {
     return (
-      <div className="relative grid h-full w-full min-h-[150px] grid-cols-[minmax(150px,1fr)_clamp(132px,36%,176px)] content-center items-center gap-3 overflow-hidden max-[430px]:grid-cols-1 max-[430px]:content-start">
-        <div className="min-h-0 min-w-0 space-y-1.5 overflow-hidden max-h-full pl-1 max-[430px]:order-2">
+      <div className="relative grid h-full w-full min-h-[140px] grid-cols-[minmax(0,1fr)_clamp(100px,38%,140px)] content-center items-center gap-2 overflow-hidden max-[430px]:grid-cols-1 max-[430px]:content-start px-1 py-1">
+        <div className="min-h-0 min-w-0 space-y-1.5 overflow-y-auto max-h-full pl-0.5 max-[430px]:order-2">
           {displayData.map((d, i) => {
             const pct = total > 0 ? (d.value / total) * 100 : 0;
             const itemColor = d.color || CHART_PALETTE[i % CHART_PALETTE.length];
@@ -96,7 +96,7 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
                 key={i}
                 onMouseEnter={() => setHoverIdx(i)}
                 onMouseLeave={() => setHoverIdx(null)}
-                className={`rounded border border-white/5 bg-white/[0.025] px-2.5 py-2 text-[10px] leading-[1.2] cursor-pointer transition ${hoverIdx !== null && hoverIdx !== i ? "opacity-40" : ""}`}
+                className={`rounded border border-white/5 bg-white/[0.025] px-2 py-1.5 text-[10px] leading-[1.2] cursor-pointer transition ${hoverIdx !== null && hoverIdx !== i ? "opacity-40" : ""}`}
               >
                 <div className="flex items-start gap-1.5">
                   <span
@@ -116,15 +116,15 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
           })}
         </div>
 
-        <div className="relative aspect-square w-full max-w-[176px] shrink-0 justify-self-center max-[430px]:order-1 max-[430px]:max-w-[150px]">
+        <div className="relative aspect-square w-full max-w-[140px] shrink-0 justify-self-center max-[430px]:order-1 max-[430px]:max-w-[120px]">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+            <PieChart margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <Pie
                 data={displayData}
                 dataKey="value"
                 nameKey="name"
-                innerRadius="60%"
-                outerRadius="82%"
+                innerRadius="58%"
+                outerRadius="78%"
                 paddingAngle={1.5}
                 stroke="hsl(var(--background))"
                 strokeWidth={1.25}
@@ -144,15 +144,15 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-6 text-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4 text-center">
             <div
-              className="max-w-[62px] text-[12px] font-black leading-[1.08] text-gradient-amber tabular-nums"
+              className="max-w-[56px] text-[11px] font-black leading-[1.08] text-gradient-amber tabular-nums truncate"
               title={String(activeValue ?? "")}
             >
               {activeValue}
             </div>
             <div
-              className="mt-0.5 line-clamp-2 max-w-[58px] text-[7px] leading-[1.1] text-muted-foreground"
+              className="mt-0.5 line-clamp-2 max-w-[52px] text-[7px] leading-[1.1] text-muted-foreground"
               title={String(activeLabel ?? "")}
             >
               {activeLabel}
@@ -165,14 +165,14 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
 
   return (
     <div className="relative w-full h-full flex items-center gap-1">
-      <ResponsiveContainer width="48%" height="100%" minHeight={140}>
-        <PieChart>
+      <ResponsiveContainer width="46%" height="100%" minHeight={140}>
+        <PieChart margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
           <Pie
             data={displayData}
             dataKey="value"
             nameKey="name"
-            innerRadius={thin ? "62%" : "55%"}
-            outerRadius={thin ? "85%" : "90%"}
+            innerRadius={thin ? "58%" : "50%"}
+            outerRadius={thin ? "78%" : "80%"}
             paddingAngle={1.5}
             stroke="hsl(var(--background))"
             strokeWidth={1.5}

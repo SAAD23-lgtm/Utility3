@@ -112,9 +112,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function PageContainer({ children }: { children: React.ReactNode }) {
+export function PageContainer({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="min-h-[calc(100dvh-92px)] p-2.5 md:min-h-full md:p-2">{children}</div>
+    <div className={`p-2.5 md:p-2 min-h-full ${className}`}>{children}</div>
   );
 }
 

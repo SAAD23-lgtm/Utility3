@@ -47,7 +47,6 @@ const BASEMAPS: Record<
     labelEn: "Dark",
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
     labelsUrl: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-    className: "map-black-basemap",
   },
   light: {
     labelAr: "فاتح",
@@ -72,7 +71,6 @@ const MAP_HALO = "#020617";
 const SECTOR_FALLBACK = "#14b8a6";
 const SECTOR_BOUNDARY = "#22d3ee";
 const ADMIN_BOUNDARY = "#94a3b8";
-const DARK_VECTOR_STYLE = "https://tiles.openfreemap.org/styles/dark";
 
 function applyBasemap(
   map: L.Map,
@@ -92,45 +90,13 @@ function applyBasemap(
     layers.vector = undefined;
   }
 
-  if (key === "dark") {
-    const vector = maplibreGL({ style: DARK_VECTOR_STYLE, interactive: false });
-    vector.addTo(map);
-    layers.vector = vector;
-    const glMap = vector.getMaplibreMap();
-    glMap.once("load", () => {
-      // Keep roads, borders and labels from the vector style, while turning
-      // every land/water/building fill truly black.
-      for (const layer of glMap.getStyle().layers || []) {
-        try {
-          if (layer.type === "background") glMap.setPaintProperty(layer.id, "background-color", "#000000");
-          if (layer.type === "fill") glMap.setPaintProperty(layer.id, "fill-color", "#020304");
-          if (layer.type === "line") {
-            const id = layer.id.toLowerCase();
-            const roadColor = /motorway|trunk|primary/.test(id)
-              ? "#66717f"
-              : /secondary|tertiary/.test(id)
-                ? "#4b5563"
-                : "#303844";
-            glMap.setPaintProperty(layer.id, "line-color", roadColor);
-            glMap.setPaintProperty(layer.id, "line-opacity", 0.78);
-          }
-          if (layer.type === "symbol") {
-            glMap.setPaintProperty(layer.id, "text-color", "#a8b1bf");
-            glMap.setPaintProperty(layer.id, "text-halo-color", "#000000");
-            glMap.setPaintProperty(layer.id, "text-halo-width", 1.1);
-          }
-        } catch {
-          // Some style layers intentionally do not expose a fill color.
-        }
-      }
-    });
-    return;
-  }
-
   const config = BASEMAPS[key];
   layers.base = L.tileLayer(config.url, {
     maxZoom: 19,
     subdomains: config.subdomains || "abc",
+    updateWhenZooming: false,
+    updateWhenIdle: true,
+    keepBuffer: 6,
   }).addTo(map);
 
   if (config.labelsUrl) {
@@ -138,6 +104,9 @@ function applyBasemap(
       maxZoom: 19,
       subdomains: config.subdomains || "abc",
       pane: "shadowPane",
+      updateWhenZooming: false,
+      updateWhenIdle: true,
+      keepBuffer: 6,
     }).addTo(map);
   }
 }
@@ -448,6 +417,15 @@ export function MapView(props: MapProps) {
       preferCanvas: true,
       zoomControl: false,
       attributionControl: false,
+      zoomSnap: 0.25,
+      zoomDelta: 0.5,
+      wheelDebounceTime: 30,
+      wheelPxPerZoomLevel: 60,
+      inertia: true,
+      inertiaDeceleration: 3500,
+      inertiaMaxSpeed: 2000,
+      easeLinearity: 0.25,
+      bounceAtZoomLimits: false,
     });
     applyBasemap(map, basemap, basemapLayersRef.current);
     map.createPane("sectorPane");
@@ -711,11 +689,11 @@ export function MapView(props: MapProps) {
     const visible = props.visibleNetworks;
     const cap = props.maxFeatures ?? Number.POSITIVE_INFINITY;
     const group = L.layerGroup();
-    const renderer = L.canvas({ padding: 0.35 });
+    const renderer = L.canvas({ padding: 0.5, tolerance: 8 });
     const isNetworkDetail = props.symbolMode === "network-detail";
     const useFastSymbols = !isNetworkDetail;
     const zoom = map.getZoom();
-    const viewBounds = map.getBounds().pad(0.16);
+    const viewBounds = map.getBounds().pad(0.6);
     const symbolScale = zoom <= 12 ? 0.38 : zoom <= 14 ? 0.55 : zoom <= 16 ? 0.72 : 0.92;
     let rendered = 0;
 
