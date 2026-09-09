@@ -255,12 +255,7 @@ export function AllNetworksPage() {
   const waterDiameterLengths = useMemo(() => {
     const totals: Record<string, number> = {};
     const rawWaterFeatures = networkData[2]?.features || [];
-    const filteredWater = allLoaded
-      ? filteredFeatures.filter((f) => f.n === "water")
-      : rawWaterFeatures;
-
-    const sourceFeatures = filteredWater.length > 0 ? filteredWater : rawWaterFeatures;
-    sourceFeatures.forEach((feature: SimpleFeature) => {
+    rawWaterFeatures.forEach((feature: SimpleFeature) => {
       const isLine = feature.c === "line" || feature.g?.t === "L" || feature.g?.t === "ML";
       if (!isLine || !feature.d) return;
       const diameter = String(feature.d).trim();
@@ -498,7 +493,7 @@ export function AllNetworksPage() {
 
         {/* ── Bottom Row Charts (Reacts dynamically to top filters) ── */}
         <CardWrap title={lang === "ar" ? "أطوال أقطار خطوط شبكة المياه بالمتر" : "Water network pipe lengths by diameter (m)"} delay={0.25} className="all-networks-length-chart">
-          <SerialChart data={waterDiameterLengths} />
+          <SerialChart key={`water-diameters-${waterDiameterLengths.length}-${allLoaded}`} data={waterDiameterLengths} />
         </CardWrap>
 
         <CardWrap title={t("card.top_implementing")} delay={0.3} className="all-networks-top-implementing">

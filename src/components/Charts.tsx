@@ -251,8 +251,8 @@ export function SerialChart({ data }: { data: Array<{ name: string; value: numbe
     );
   }
   return (
-    <div className="h-full min-h-[180px] w-full relative">
-      <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+    <div className="h-full min-h-[220px] w-full relative">
+      <ResponsiveContainer width="100%" height={220} minHeight={220}>
         <BarChart data={data} margin={{ top: 20, right: 8, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.45} />
           <XAxis
