@@ -254,21 +254,30 @@ export function AllNetworksPage() {
 
   const waterDiameterLengths = useMemo(() => {
     const totals: Record<string, number> = {};
-    const sourceFeatures = allLoaded ? filteredFeatures : (networkData[2]?.features || []);
+    const rawWaterFeatures = networkData[2]?.features || [];
+    const filteredWater = allLoaded
+      ? filteredFeatures.filter((f) => f.n === "water")
+      : rawWaterFeatures;
+
+    const sourceFeatures = filteredWater.length > 0 ? filteredWater : rawWaterFeatures;
     sourceFeatures.forEach((feature: SimpleFeature) => {
-      if ((feature.n && feature.n !== "water") || feature.c !== "line" || !feature.d || !feature.l) return;
+      const isLine = feature.c === "line" || feature.g?.t === "L" || feature.g?.t === "ML";
+      if (!isLine || !feature.d) return;
       const diameter = String(feature.d).trim();
       if (!/^\d+(\.\d+)?$/.test(diameter)) return;
-      totals[diameter] = (totals[diameter] || 0) + Number(feature.l) * 1000;
+      const lenKm = Number(feature.l || 0);
+      const lenMeters = lenKm > 0 ? lenKm * 1000 : 1;
+      totals[diameter] = (totals[diameter] || 0) + lenMeters;
     });
+
     return Object.entries(totals)
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([name, value], index) => ({
-        name,
+        name: `${name} مم`,
         value: Number(value.toFixed(1)),
         color: ["#b5179e", "#087fba", "#8ba32b", "#824b84", "#d27b17", "#c7ad2f", "#4f8747", "#97744e", "#3a9386", "#5c5bb0", "#a33f6e", "#777777", "#168db2", "#0b70a1", "#8ba32b", "#8d4a91", "#d47c22"][index % 17],
       }));
-  }, [allLoaded, filteredFeatures, networkData[2]]);
+  }, [allLoaded, filteredFeatures, networkData]);
 
   const topImplementingData = useMemo(() => {
     if (!allLoaded && summary.data) {

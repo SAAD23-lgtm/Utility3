@@ -243,20 +243,27 @@ export function Donut({ data, centerLabel, centerValue, thin = false, compact = 
 }
 
 export function SerialChart({ data }: { data: Array<{ name: string; value: number; color?: string }> }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-full min-h-[180px] w-full flex items-center justify-center text-xs text-muted-foreground">
+        لا توجد بيانات متاحة
+      </div>
+    );
+  }
   return (
-    <div className="h-full min-h-[180px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 18, right: 8, left: 0, bottom: 4 }}>
+    <div className="h-full min-h-[180px] w-full relative">
+      <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+        <BarChart data={data} margin={{ top: 20, right: 8, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.45} />
           <XAxis
             dataKey="name"
-            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 9.5 }}
             axisLine={{ stroke: "hsl(var(--border))" }}
             tickLine={false}
             interval={0}
           />
           <YAxis
-            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 9.5 }}
             axisLine={false}
             tickLine={false}
             width={48}
@@ -270,10 +277,10 @@ export function SerialChart({ data }: { data: Array<{ name: string; value: numbe
               color: "hsl(var(--foreground))",
               fontSize: 11,
             }}
-            formatter={(value: number) => [formatCount(value), ""]}
+            formatter={(value: number) => [`${formatCount(value)} م`, "الطول"]}
           />
           <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-            <LabelList dataKey="value" position="top" formatter={(value: number) => `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 })}م`} fill="hsl(var(--foreground))" fontSize={9} />
+            <LabelList dataKey="value" position="top" formatter={(value: number) => `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}م`} fill="hsl(var(--foreground))" fontSize={8.5} />
             {data.map((item, index) => (
               <Cell key={index} fill={item.color || CHART_PALETTE[index % CHART_PALETTE.length]} />
             ))}
