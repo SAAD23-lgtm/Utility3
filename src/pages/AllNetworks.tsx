@@ -89,6 +89,26 @@ export function AllNetworksPage() {
 
   const allLoaded = networkQueries.every((q) => !!q.data);
 
+  // Keep this memoized hook above the loading return so hook order is stable
+  // while the summary and network files load asynchronously.
+  const waterDiameterLengths = useMemo(() => {
+    const totals: Record<string, number> = {};
+    const water = networkData[2];
+    (water?.features || []).forEach((feature: SimpleFeature) => {
+      if (feature.c !== "line" || !feature.d || !feature.l) return;
+      const diameter = String(feature.d).trim();
+      if (!/^\d+(\.\d+)?$/.test(diameter)) return;
+      totals[diameter] = (totals[diameter] || 0) + Number(feature.l) * 1000;
+    });
+    return Object.entries(totals)
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([name, value], index) => ({
+        name,
+        value: Number(value.toFixed(1)),
+        color: ["#b5179e", "#087fba", "#8ba32b", "#824b84", "#d27b17", "#c7ad2f", "#4f8747", "#97744e", "#3a9386", "#5c5bb0", "#a33f6e", "#777777", "#168db2", "#0b70a1", "#8ba32b", "#8d4a91", "#d47c22"][index % 17],
+      }));
+  }, [networkData[2]]);
+
   const handleLocate = useCallback((f: SimpleFeature) => {
     setFlyTo(f);
     setViewMode("map");
@@ -134,24 +154,6 @@ export function AllNetworksPage() {
     value: Number((s.networks[k]?.totalLengthKm || 0).toFixed(1)),
     color: NET_COLORS[k],
   })).filter((d) => d.value > 0);
-
-  const waterDiameterLengths = useMemo(() => {
-    const totals: Record<string, number> = {};
-    const water = networkData[2];
-    (water?.features || []).forEach((feature: SimpleFeature) => {
-      if (feature.c !== "line" || !feature.d || !feature.l) return;
-      const diameter = String(feature.d).trim();
-      if (!/^\d+(\.\d+)?$/.test(diameter)) return;
-      totals[diameter] = (totals[diameter] || 0) + Number(feature.l) * 1000;
-    });
-    return Object.entries(totals)
-      .sort(([a], [b]) => Number(a) - Number(b))
-      .map(([name, value], index) => ({
-        name,
-        value: Number(value.toFixed(1)),
-        color: ["#b5179e", "#087fba", "#8ba32b", "#824b84", "#d27b17", "#c7ad2f", "#4f8747", "#97744e", "#3a9386", "#5c5bb0", "#a33f6e", "#777777", "#168db2", "#0b70a1", "#8ba32b", "#8d4a91", "#d47c22"][index % 17],
-      }));
-  }, [networkData[2]]);
 
   return (
     <PageContainer>
