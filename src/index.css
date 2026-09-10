@@ -416,7 +416,7 @@
     }
     .all-networks-grid {
       grid-template-columns: clamp(320px, 30vw, 440px) minmax(0, 1fr);
-      grid-template-rows: 460px 280px;
+      grid-template-rows: 460px 280px 240px;
     }
     .all-networks-toggle,
     .all-networks-map-shell {
@@ -440,10 +440,17 @@
       height: 280px;
       align-self: stretch;
     }
-    .all-networks-top-implementing {
-      grid-column: 1 / span 1;
+    .all-networks-side-charts {
+      grid-column: 1;
       grid-row: 2;
       height: 280px;
+      min-height: 0;
+      align-self: stretch;
+    }
+    .all-networks-top-implementing {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      height: 240px;
       align-self: stretch;
     }
     .all-networks-share-grid {
