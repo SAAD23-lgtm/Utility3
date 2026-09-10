@@ -589,7 +589,8 @@
       min-height: 380px;
     }
     .overview-side-charts {
-      display: grid;
+      display: flex;
+      flex-direction: column;
       grid-column: 3;
       grid-row: 2;
     }
