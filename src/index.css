@@ -568,6 +568,8 @@
     .overview-grid {
       grid-template-columns: clamp(210px, 17vw, 250px) minmax(0, 1fr) clamp(220px, 18vw, 270px);
       grid-template-rows: auto 380px 200px;
+      align-content: start;
+      grid-auto-rows: 200px;
     }
     .overview-stats {
       grid-column: span 3 / span 3;
@@ -586,6 +588,12 @@
     .overview-side-charts {
       height: 380px;
       overflow: hidden;
+    }
+    .overview-grid > .glass-card:not(.overview-panel):not(.overview-side-charts),
+    .overview-grid > .glass-card:nth-last-child(-n + 3) {
+      height: 200px;
+      min-height: 0;
+      align-self: start;
     }
   }
 
