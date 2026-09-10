@@ -442,7 +442,7 @@
     }
     .all-networks-side-charts {
       grid-column: 1 / -1;
-      grid-row: 4;
+      grid-row: 3;
       height: 280px;
       min-height: 0;
       align-self: stretch;
@@ -637,10 +637,14 @@
   }
 
   @media (min-width: 768px) and (max-height: 820px) {
-    .all-networks-grid,
     .overview-grid {
       gap: 0.375rem;
       grid-template-rows: auto minmax(380px, 1fr) minmax(135px, auto);
+    }
+    .all-networks-grid {
+      gap: 0.375rem;
+      grid-template-rows: 460px 280px 280px;
+      align-content: start;
     }
     .network-detail-grid {
       gap: 0.375rem;
