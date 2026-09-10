@@ -551,9 +551,17 @@
     border-radius: 0.5rem;
   }
   .overview-side-charts {
-    display: grid;
-    grid-template-rows: repeat(2, minmax(280px, 1fr));
-    gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .overview-side-charts > .border-b {
+    display: none;
+  }
+  .overview-side-charts > .flex-1 {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0.5rem;
   }
 
   @media (max-width: 480px) {
@@ -567,7 +575,7 @@
       min-height: 520px;
     }
     .overview-side-charts {
-      grid-template-rows: repeat(2, minmax(320px, auto));
+      display: flex;
     }
   }
 
