@@ -573,7 +573,7 @@
 
   @media (min-width: 768px) {
     .overview-grid {
-      grid-template-columns: clamp(260px, 22vw, 340px) minmax(0, 1fr);
+      grid-template-columns: clamp(210px, 17vw, 250px) minmax(0, 1fr) clamp(220px, 18vw, 270px);
       grid-template-rows: auto 380px 200px;
       align-content: start;
       grid-auto-rows: 200px;
@@ -589,7 +589,9 @@
       min-height: 380px;
     }
     .overview-side-charts {
-      display: none;
+      display: grid;
+      grid-column: 3;
+      grid-row: 2;
     }
     .overview-map-shell {
       height: 380px;
