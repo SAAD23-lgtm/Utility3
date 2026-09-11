@@ -32,6 +32,14 @@ import { useI18n, netLabel } from "@/lib/i18n";
 
 const ALL_KEYS: NetKey[] = ["electric", "gas", "water", "sewage", "telecom", "irrigation"];
 const BASE = import.meta.env.BASE_URL;
+const HIDDEN_DETAIL_TYPES = new Set([
+  "\u062a\u063a\0630\u064a\u0629 \u0627\u0644\u0639\u0645\u0627\u0631\u0627\u062a",
+  "\u0627\u0644\u062a\u063a\0630\u064a\u0629 \u0627\u0644\u0645\u0646\u0632\u0644\u064a\u0629",
+  "\u062a\u063a\0630\u064a\u0629 \u0645\u0646\u0632\u0644\u064a\u0629",
+  "\u0641\u0631\u0639\u064a",
+  "\u0641\u0631\u0639\u0649",
+]);
+const isHiddenDetailType = (type: string) => HIDDEN_DETAIL_TYPES.has(type.replace(/\s+/g, " ").trim());
 
 type ViewMode = "map" | "table";
 
@@ -181,7 +189,7 @@ export function AllNetworksPage() {
             value: Number(value),
             color: NET_COLORS[key] || "#f59e0b",
           }))
-      ).sort((a, b) => b.value - a.value);
+      ).filter((item) => !isHiddenDetailType(item.type)).sort((a, b) => b.value - a.value);
     }
 
     const counts: Record<string, { key: NetKey; type: string; value: number; color: string }> = {};
@@ -200,7 +208,7 @@ export function AllNetworksPage() {
       }
       counts[compositeKey].value += 1;
     });
-    return Object.values(counts).sort((a, b) => b.value - a.value);
+    return Object.values(counts).filter((item) => !isHiddenDetailType(item.type)).sort((a, b) => b.value - a.value);
   }, [allLoaded, summary.data, filteredFeatures]);
 
   const filteredDetailList = useMemo(() => {
